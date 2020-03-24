@@ -25,7 +25,6 @@ import {
 } from '@firebase/analytics-types';
 import {
   GtagCommand,
-  ANALYTICS_ID_FIELD,
   GA_FID_KEY,
   ORIGIN_KEY,
   GTAG_URL
@@ -42,11 +41,11 @@ import { logger } from './logger';
  * @param gtagCore The gtag function that's not wrapped.
  */
 export async function initializeGAId(
-  app: FirebaseApp,
+  measurementIdPromise: Promise<string>,
   installations: FirebaseInstallations,
   gtagCore: Gtag
 ): Promise<void> {
-  const fid = await installations.getId();
+  const [ measurementId, fid ] = await Promise.all([measurementIdPromise, installations.getId()]);
 
   // This command initializes gtag.js and only needs to be called once for the entire web app,
   // but since it is idempotent, we can call it multiple times.
@@ -56,7 +55,7 @@ export async function initializeGAId(
 
   // It should be the first config command called on this GA-ID
   // Initialize this GA-ID and set FID on it using the gtag config API.
-  gtagCore(GtagCommand.CONFIG, app.options[ANALYTICS_ID_FIELD]!, {
+  gtagCore(GtagCommand.CONFIG, measurementId, {
     [GA_FID_KEY]: fid,
     // guard against developers accidentally setting properties with prefix `firebase_`
     [ORIGIN_KEY]: 'firebase',

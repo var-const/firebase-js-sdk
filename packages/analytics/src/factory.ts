@@ -38,11 +38,17 @@ import { ANALYTICS_ID_FIELD } from './constants';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseInstallations } from '@firebase/installations-types';
+import { fetchDynamicConfig, getMeasurementId } from './get-config';
 
 /**
- * Maps gaId to FID fetch promises.
+ * Maps appId to full initialization promise.
  */
-let initializedIdPromisesMap: { [gaId: string]: Promise<void> } = {};
+let fidPromisesMap: { [appId: string]: Promise<void> } = {};
+
+/**
+ * Maps appId to measurementId fetch promises.
+ */
+let measurementIdPromisesMap: { [appId: string]: Promise<string> } = {};
 
 /**
  * Name for window global data layer array used by GA: defaults to 'dataLayer'.
@@ -80,7 +86,7 @@ export function resetGlobalVars(
   newGaInitializedPromise = {}
 ): void {
   globalInitDone = newGlobalInitDone;
-  initializedIdPromisesMap = newGaInitializedPromise;
+  fidPromisesMap = newGaInitializedPromise;
   dataLayerName = 'dataLayer';
   gtagName = 'gtag';
 }
@@ -88,11 +94,9 @@ export function resetGlobalVars(
 /**
  * For testing
  */
-export function getGlobalVars(): {
-  initializedIdPromisesMap: { [gaId: string]: Promise<void> };
-} {
+export function getGlobalVars(): { fidPromisesMap: { [gaId: string]: Promise<void> }} {
   return {
-    initializedIdPromisesMap
+    fidPromisesMap
   };
 }
 
@@ -117,14 +121,20 @@ export function factory(
   app: FirebaseApp,
   installations: FirebaseInstallations
 ): FirebaseAnalytics {
-  const analyticsId = app.options[ANALYTICS_ID_FIELD];
-  if (!analyticsId) {
+  // const analyticsId = app.options[ANALYTICS_ID_FIELD];
+  // if (!analyticsId) {
+  //   throw ERROR_FACTORY.create(AnalyticsError.NO_GA_ID);
+  // }
+  const appId = app.options.appId;
+  if (!appId) {
+    //TODO: Change to AppId error
     throw ERROR_FACTORY.create(AnalyticsError.NO_GA_ID);
   }
 
-  if (initializedIdPromisesMap[analyticsId] != null) {
+  if (initializationPromisesMap[appId] != null) {
+    //TODO: Change to AppId error?
     throw ERROR_FACTORY.create(AnalyticsError.ALREADY_EXISTS, {
-      id: analyticsId
+      id: appId
     });
   }
 
@@ -139,7 +149,8 @@ export function factory(
     getOrCreateDataLayer(dataLayerName);
 
     const { wrappedGtag, gtagCore } = wrapOrCreateGtag(
-      initializedIdPromisesMap,
+      initializationPromisesMap,
+      measurementIdPromisesMap,
       dataLayerName,
       gtagName
     );
@@ -149,30 +160,32 @@ export function factory(
     globalInitDone = true;
   }
   // Async but non-blocking.
-  initializedIdPromisesMap[analyticsId] = initializeGAId(
-    app,
-    installations,
-    gtagCoreFunction
-  );
+  measurementIdPromisesMap[appId] = getMeasurementId(app);
+  initializationPromisesMap[appId] = initializeGAId(measurementIdPromisesMap[appId], installations, gtagCoreFunction);
+  // fidPromisesMap[appId] = initializeGAId(
+  //   app,
+  //   installations,
+  //   gtagCoreFunction
+  // );
 
   const analyticsInstance: FirebaseAnalytics = {
     app,
     logEvent: (eventName, eventParams, options) =>
       logEvent(
         wrappedGtagFunction,
-        analyticsId,
+        measurementId,
         eventName,
         eventParams,
         options
       ),
     setCurrentScreen: (screenName, options) =>
-      setCurrentScreen(wrappedGtagFunction, analyticsId, screenName, options),
+      setCurrentScreen(wrappedGtagFunction, measurementId, screenName, options),
     setUserId: (id, options) =>
-      setUserId(wrappedGtagFunction, analyticsId, id, options),
+      setUserId(wrappedGtagFunction, measurementId, id, options),
     setUserProperties: (properties, options) =>
-      setUserProperties(wrappedGtagFunction, analyticsId, properties, options),
+      setUserProperties(wrappedGtagFunction, measurementId, properties, options),
     setAnalyticsCollectionEnabled: enabled =>
-      setAnalyticsCollectionEnabled(analyticsId, enabled)
+      setAnalyticsCollectionEnabled(measurementId, enabled)
   };
 
   return analyticsInstance;
