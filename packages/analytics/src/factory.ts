@@ -39,7 +39,7 @@ import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { fetchDynamicConfig } from './get-config';
-import { logger} from './logger';
+import { logger } from './logger';
 
 /**
  * Maps appId to full initialization promise.
@@ -102,7 +102,10 @@ export function resetGlobalVars(
 /**
  * For testing
  */
-export function getGlobalVars(): { initializationPromisesMap: { [gaId: string]: Promise<void> }, dynamicConfigPromisesList: Array<Promise<DynamicConfig>> } {
+export function getGlobalVars(): {
+  initializationPromisesMap: { [gaId: string]: Promise<void> };
+  dynamicConfigPromisesList: Array<Promise<DynamicConfig>>;
+} {
   return {
     initializationPromisesMap,
     dynamicConfigPromisesList
@@ -172,11 +175,17 @@ export function factory(
   // Async but non-blocking.
   const dynamicConfigPromise = fetchDynamicConfig(app);
   // Once fetched, map measurementIds to appId, for ease of lookup in wrapped gtag function.
-  dynamicConfigPromise.then(config => measurementIdToAppId[config.measurementId] = config.appId).catch(e => logger.error(e));
+  dynamicConfigPromise
+    .then(config => (measurementIdToAppId[config.measurementId] = config.appId))
+    .catch(e => logger.error(e));
   // Add to list to track state of all dynamic config promises.
   dynamicConfigPromisesList.push(dynamicConfigPromise);
   // This map reflects the completion state of all promises for each appId.
-  initializationPromisesMap[appId] = initializeGAId(dynamicConfigPromise, installations, gtagCoreFunction);
+  initializationPromisesMap[appId] = initializeGAId(
+    dynamicConfigPromise,
+    installations,
+    gtagCoreFunction
+  );
   // fidPromisesMap[appId] = initializeGAId(
   //   app,
   //   installations,
@@ -194,11 +203,21 @@ export function factory(
         options
       ),
     setCurrentScreen: (screenName, options) =>
-      setCurrentScreen(wrappedGtagFunction, dynamicConfigPromise, screenName, options),
+      setCurrentScreen(
+        wrappedGtagFunction,
+        dynamicConfigPromise,
+        screenName,
+        options
+      ),
     setUserId: (id, options) =>
       setUserId(wrappedGtagFunction, dynamicConfigPromise, id, options),
     setUserProperties: (properties, options) =>
-      setUserProperties(wrappedGtagFunction, dynamicConfigPromise, properties, options),
+      setUserProperties(
+        wrappedGtagFunction,
+        dynamicConfigPromise,
+        properties,
+        options
+      ),
     setAnalyticsCollectionEnabled: enabled =>
       setAnalyticsCollectionEnabled(dynamicConfigPromise, enabled)
   };

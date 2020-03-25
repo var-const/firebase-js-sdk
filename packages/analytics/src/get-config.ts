@@ -1,7 +1,8 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { DynamicConfig } from '@firebase/analytics-types';
 
-const DYNAMIC_CONFIG_URL = "https://firebase.googleapis.com/v1alpha/projects/-/apps/{app-id}/webConfig";
+const DYNAMIC_CONFIG_URL =
+  'https://firebase.googleapis.com/v1alpha/projects/-/apps/{app-id}/webConfig';
 
 export function getHeaders(apiKey: string): Headers {
   return new Headers({
@@ -14,7 +15,9 @@ export function getHeaders(apiKey: string): Headers {
  * Fetches dynamic config from backend.
  * @param app Firebase app to fetch config for.
  */
-export async function fetchDynamicConfig(app: FirebaseApp): Promise<DynamicConfig> {
+export async function fetchDynamicConfig(
+  app: FirebaseApp
+): Promise<DynamicConfig> {
   if (!app.options.apiKey || !app.options.appId) {
     //TODO: Put in proper error, may need two.
     throw new Error('no api key');
@@ -28,7 +31,7 @@ export async function fetchDynamicConfig(app: FirebaseApp): Promise<DynamicConfi
   return response.json();
 }
 
-export async function getMeasurementId(app:FirebaseApp): Promise<string> {
+export async function getMeasurementId(app: FirebaseApp): Promise<string> {
   const { measurementId } = await fetchDynamicConfig(app);
   return measurementId;
 }

@@ -24,7 +24,7 @@ import {
   DynamicConfig
 } from '@firebase/analytics-types';
 import { GtagCommand } from './constants';
-import { logger} from './logger';
+import { logger } from './logger';
 /**
  * Logs an analytics event through the Firebase SDK.
  *
@@ -42,12 +42,16 @@ export function logEvent(
   if (options && options.global) {
     gtagFunction(GtagCommand.EVENT, eventName, eventParams || {});
   } else {
-    dynamicConfigPromise.then(({ measurementId }) => {
-      const params: EventParams | ControlParams = { ...eventParams, 'send_to': measurementId };
-      // Workaround for http://b/141370449 - third argument cannot be undefined.
-      gtagFunction(GtagCommand.EVENT, eventName, params || {});
-    })
-    .catch(e => logger.error(e));
+    dynamicConfigPromise
+      .then(({ measurementId }) => {
+        const params: EventParams | ControlParams = {
+          ...eventParams,
+          'send_to': measurementId
+        };
+        // Workaround for http://b/141370449 - third argument cannot be undefined.
+        gtagFunction(GtagCommand.EVENT, eventName, params || {});
+      })
+      .catch(e => logger.error(e));
   }
 }
 
@@ -68,13 +72,14 @@ export function setCurrentScreen(
   if (options && options.global) {
     gtagFunction(GtagCommand.SET, { 'screen_name': screenName });
   } else {
-    dynamicConfigPromise.then(({ measurementId }) => {
-      gtagFunction(GtagCommand.CONFIG, measurementId, {
-        update: true,
-        'screen_name': screenName
-      });
-    })
-    .catch(e => logger.error(e));
+    dynamicConfigPromise
+      .then(({ measurementId }) => {
+        gtagFunction(GtagCommand.CONFIG, measurementId, {
+          update: true,
+          'screen_name': screenName
+        });
+      })
+      .catch(e => logger.error(e));
   }
 }
 
@@ -93,13 +98,14 @@ export function setUserId(
   if (options && options.global) {
     gtagFunction(GtagCommand.SET, { 'user_id': id });
   } else {
-    dynamicConfigPromise.then(({ measurementId }) => {
-      gtagFunction(GtagCommand.CONFIG, measurementId, {
-        update: true,
-        'user_id': id
-      });
-    })
-    .catch(e => logger.error(e));
+    dynamicConfigPromise
+      .then(({ measurementId }) => {
+        gtagFunction(GtagCommand.CONFIG, measurementId, {
+          update: true,
+          'user_id': id
+        });
+      })
+      .catch(e => logger.error(e));
   }
 }
 
@@ -123,13 +129,14 @@ export function setUserProperties(
     }
     gtagFunction(GtagCommand.SET, flatProperties);
   } else {
-    dynamicConfigPromise.then(({ measurementId }) => {
-      gtagFunction(GtagCommand.CONFIG, measurementId, {
-        update: true,
-        'user_properties': properties
-      });
-    })
-    .catch(e => logger.error(e));
+    dynamicConfigPromise
+      .then(({ measurementId }) => {
+        gtagFunction(GtagCommand.CONFIG, measurementId, {
+          update: true,
+          'user_properties': properties
+        });
+      })
+      .catch(e => logger.error(e));
   }
 }
 
@@ -142,8 +149,9 @@ export function setAnalyticsCollectionEnabled(
   dynamicConfigPromise: Promise<DynamicConfig>,
   enabled: boolean
 ): void {
-  dynamicConfigPromise.then(({ measurementId }) => {
-    window[`ga-disable-${measurementId}`] = !enabled;
-  })
-  .catch(e => logger.error(e));
+  dynamicConfigPromise
+    .then(({ measurementId }) => {
+      window[`ga-disable-${measurementId}`] = !enabled;
+    })
+    .catch(e => logger.error(e));
 }

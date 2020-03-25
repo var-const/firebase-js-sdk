@@ -23,12 +23,7 @@ import {
   ControlParams,
   EventParams
 } from '@firebase/analytics-types';
-import {
-  GtagCommand,
-  GA_FID_KEY,
-  ORIGIN_KEY,
-  GTAG_URL
-} from './constants';
+import { GtagCommand, GA_FID_KEY, ORIGIN_KEY, GTAG_URL } from './constants';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { logger } from './logger';
 
@@ -45,7 +40,10 @@ export async function initializeGAId(
   installations: FirebaseInstallations,
   gtagCore: Gtag
 ): Promise<void> {
-  const [ dynamicConfig, fid ] = await Promise.all([dynamicConfigPromise, installations.getId()]);
+  const [dynamicConfig, fid] = await Promise.all([
+    dynamicConfigPromise,
+    installations.getId()
+  ]);
 
   // This command initializes gtag.js and only needs to be called once for the entire web app,
   // but since it is idempotent, we can call it multiple times.
@@ -119,8 +117,11 @@ function wrapGtag(
         Promise.all(dynamicConfigPromisesList)
           .then(dynamicConfigResults => {
             for (const sendToId of gaSendToList) {
-              const foundConfig = dynamicConfigResults.find(config => config.measurementId === sendToId);
-              const initializationPromise = foundConfig && initializationPromisesMap[foundConfig.appId];
+              const foundConfig = dynamicConfigResults.find(
+                config => config.measurementId === sendToId
+              );
+              const initializationPromise =
+                foundConfig && initializationPromisesMap[foundConfig.appId];
               // Groups will not be in the map.
               if (initializationPromise) {
                 initializationPromisesToWaitFor.push(initializationPromise);
@@ -140,7 +141,9 @@ function wrapGtag(
       // if not all entries in the 'send_to' field could be mapped to
       // a FID. In these cases, wait on all pending initialization promises.
       if (initializationPromisesToWaitFor.length === 0) {
-        initializationPromisesToWaitFor = Object.values(initializationPromisesMap);
+        initializationPromisesToWaitFor = Object.values(
+          initializationPromisesMap
+        );
       }
       // Run core gtag function with args after all relevant initialization
       // promises have been resolved.
@@ -158,9 +161,11 @@ function wrapGtag(
       let initializationPromiseToWaitFor: Promise<void>;
       // If config is fetched, we know the appId and can use it to look up what FID promise we
       /// are waiting for, and wait only on that one.
-      const correspondingAppId = measurementIdToAppId[idOrNameOrParams as string];
+      const correspondingAppId =
+        measurementIdToAppId[idOrNameOrParams as string];
       if (correspondingAppId) {
-        initializationPromiseToWaitFor = initializationPromisesMap[correspondingAppId];
+        initializationPromiseToWaitFor =
+          initializationPromisesMap[correspondingAppId];
       } else {
         // If config is not fetched, wait for all configs (we don't know which one we need) and
         // find the appId (if any) corresponding to this measurementId. If there is one, wait on
@@ -168,7 +173,9 @@ function wrapGtag(
         // call goes through.
         initializationPromiseToWaitFor = Promise.all(dynamicConfigPromisesList)
           .then(dynamicConfigResults => {
-            const foundConfig = dynamicConfigResults.find(config => config.measurementId === idOrNameOrParams);
+            const foundConfig = dynamicConfigResults.find(
+              config => config.measurementId === idOrNameOrParams
+            );
             if (foundConfig) {
               return initializationPromisesMap[foundConfig.appId];
             }
@@ -223,7 +230,12 @@ export function wrapOrCreateGtag(
     gtagCore = window[gtagFunctionName];
   }
 
-  window[gtagFunctionName] = wrapGtag(gtagCore, initializationPromisesMap, dynamicConfigPromisesList, measurementIdToAppId);
+  window[gtagFunctionName] = wrapGtag(
+    gtagCore,
+    initializationPromisesMap,
+    dynamicConfigPromisesList,
+    measurementIdToAppId
+  );
 
   return {
     gtagCore,
