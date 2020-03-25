@@ -86,17 +86,21 @@ export interface SettingsOptions {
   dataLayerName?: string;
 }
 
+/**
+ * Dynamic configuration fetched from server.
+ * See https://firebase.google.com/docs/projects/api/reference/rest/v1beta1/projects.webApps/getConfig
+ */
 interface DynamicConfig {
-  "projectId": string,
-  "appId": string,
-  "databaseURL": string,
-  "storageBucket": string,
-  "locationId": string,
-  "apiKey": string,
-  "authDomain": string,
-  "messagingSenderId": string,
-  "measurementId": string
-};
+  projectId: string,
+  appId: string,
+  databaseURL: string,
+  storageBucket: string,
+  locationId: string,
+  apiKey: string,
+  authDomain: string,
+  messagingSenderId: string,
+  measurementId: string
+}
 
 /**
  * Standard `gtag` function provided by gtag.js.

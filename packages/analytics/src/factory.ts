@@ -44,7 +44,7 @@ import { logger} from './logger';
 /**
  * Maps appId to full initialization promise.
  */
-let fidPromisesMap: { [appId: string]: Promise<void> } = {};
+let initializationPromisesMap: { [appId: string]: Promise<void> } = {};
 
 /**
  * List of dynamic config fetch promises.
