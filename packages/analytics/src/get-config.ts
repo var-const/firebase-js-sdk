@@ -1,16 +1,5 @@
 import { FirebaseApp } from '@firebase/app-types';
-
-interface DynamicConfig {
-  "projectId": string,
-  "appId": string,
-  "databaseURL": string,
-  "storageBucket": string,
-  "locationId": string,
-  "apiKey": string,
-  "authDomain": string,
-  "messagingSenderId": string,
-  "measurementId": string
-};
+import { DynamicConfig } from '@firebase/analytics-types';
 
 const DYNAMIC_CONFIG_URL = "https://firebase.googleapis.com/v1alpha/projects/-/apps/{app-id}/webConfig";
 

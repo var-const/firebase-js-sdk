@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
 import {
+  DynamicConfig,
   DataLayer,
   Gtag,
   CustomParams,
@@ -41,11 +41,11 @@ import { logger } from './logger';
  * @param gtagCore The gtag function that's not wrapped.
  */
 export async function initializeGAId(
-  measurementIdPromise: Promise<string>,
+  dynamicConfigPromise: Promise<DynamicConfig>,
   installations: FirebaseInstallations,
   gtagCore: Gtag
 ): Promise<void> {
-  const [ measurementId, fid ] = await Promise.all([measurementIdPromise, installations.getId()]);
+  const [ dynamicConfig, fid ] = await Promise.all([dynamicConfigPromise, installations.getId()]);
 
   // This command initializes gtag.js and only needs to be called once for the entire web app,
   // but since it is idempotent, we can call it multiple times.
@@ -55,7 +55,7 @@ export async function initializeGAId(
 
   // It should be the first config command called on this GA-ID
   // Initialize this GA-ID and set FID on it using the gtag config API.
-  gtagCore(GtagCommand.CONFIG, measurementId, {
+  gtagCore(GtagCommand.CONFIG, dynamicConfig.measurementId, {
     [GA_FID_KEY]: fid,
     // guard against developers accidentally setting properties with prefix `firebase_`
     [ORIGIN_KEY]: 'firebase',
@@ -94,7 +94,9 @@ export function getOrCreateDataLayer(dataLayerName: string): DataLayer {
  */
 function wrapGtag(
   gtagCore: Gtag,
-  initializedIdPromisesMap: { [gaId: string]: Promise<void> }
+  initializationPromisesMap: { [appId: string]: Promise<void> },
+  dynamicConfigPromisesList: Array<Promise<DynamicConfig>>,
+  measurementIdToAppId: { [measurementId: string]: string }
 ): Function {
   return (
     command: 'config' | 'set' | 'event',
@@ -112,28 +114,33 @@ function wrapGtag(
         if (!Array.isArray(gaSendToList)) {
           gaSendToList = [gaSendToList];
         }
-        for (const sendToId of gaSendToList) {
-          const initializationPromise = initializedIdPromisesMap[sendToId];
-          // Groups will not be in the map.
-          if (initializationPromise) {
-            initializationPromisesToWaitFor.push(initializationPromise);
-          } else {
-            // There is an item in 'send_to' that is not associated
-            // directly with an FID, possibly a group.  Empty this array
-            // and let it get populated below.
-            initializationPromisesToWaitFor = [];
-            break;
-          }
-        }
+        // Checking 'send_to' fields requires having all measurement ID results back from
+        // the dynamic config fetch.
+        Promise.all(dynamicConfigPromisesList)
+          .then(dynamicConfigResults => {
+            for (const sendToId of gaSendToList) {
+              const foundConfig = dynamicConfigResults.find(config => config.measurementId === sendToId);
+              const initializationPromise = foundConfig && initializationPromisesMap[foundConfig.appId];
+              // Groups will not be in the map.
+              if (initializationPromise) {
+                initializationPromisesToWaitFor.push(initializationPromise);
+              } else {
+                // There is an item in 'send_to' that is not associated
+                // directly with an FID, possibly a group.  Empty this array
+                // and let it get populated below.
+                initializationPromisesToWaitFor = [];
+                break;
+              }
+            }
+          })
+          .catch(e => logger.error(e));
       }
 
       // This will be unpopulated if there was no 'send_to' field , or
       // if not all entries in the 'send_to' field could be mapped to
       // a FID. In these cases, wait on all pending initialization promises.
       if (initializationPromisesToWaitFor.length === 0) {
-        for (const idPromise of Object.values(initializedIdPromisesMap)) {
-          initializationPromisesToWaitFor.push(idPromise);
-        }
+        initializationPromisesToWaitFor = Object.values(initializationPromisesMap);
       }
       // Run core gtag function with args after all relevant initialization
       // promises have been resolved.
@@ -148,10 +155,27 @@ function wrapGtag(
         )
         .catch(e => logger.error(e));
     } else if (command === GtagCommand.CONFIG) {
-      const initializationPromiseToWait =
-        initializedIdPromisesMap[idOrNameOrParams as string] ||
-        Promise.resolve();
-      initializationPromiseToWait
+      let initializationPromiseToWaitFor: Promise<void>;
+      // If config is fetched, we know the appId and can use it to look up what FID promise we
+      /// are waiting for, and wait only on that one.
+      const correspondingAppId = measurementIdToAppId[idOrNameOrParams as string];
+      if (correspondingAppId) {
+        initializationPromiseToWaitFor = initializationPromisesMap[correspondingAppId];
+      } else {
+        // If config is not fetched, wait for all configs (we don't know which one we need) and
+        // find the appId (if any) corresponding to this measurementId. If there is one, wait on
+        // that appId's initialization promise. If there is none, promise resolves and gtag
+        // call goes through.
+        initializationPromiseToWaitFor = Promise.all(dynamicConfigPromisesList)
+          .then(dynamicConfigResults => {
+            const foundConfig = dynamicConfigResults.find(config => config.measurementId === idOrNameOrParams);
+            if (foundConfig) {
+              return initializationPromisesMap[foundConfig.appId];
+            }
+          })
+          .catch(e => logger.error(e));
+      }
+      initializationPromiseToWaitFor
         .then(() => {
           gtagCore(GtagCommand.CONFIG, idOrNameOrParams as string, gtagParams);
         })
@@ -175,7 +199,9 @@ function wrapGtag(
  * @param gtagFunctionName Name of global gtag function ("gtag" if not user-specified)
  */
 export function wrapOrCreateGtag(
-  initializedIdPromisesMap: { [gaId: string]: Promise<void> },
+  initializationPromisesMap: { [appId: string]: Promise<void> },
+  dynamicConfigPromisesList: Array<Promise<DynamicConfig>>,
+  measurementIdToAppId: { [measurementId: string]: string },
   dataLayerName: string,
   gtagFunctionName: string
 ): {
@@ -197,7 +223,7 @@ export function wrapOrCreateGtag(
     gtagCore = window[gtagFunctionName];
   }
 
-  window[gtagFunctionName] = wrapGtag(gtagCore, initializedIdPromisesMap);
+  window[gtagFunctionName] = wrapGtag(gtagCore, initializationPromisesMap, dynamicConfigPromisesList, measurementIdToAppId);
 
   return {
     gtagCore,

@@ -18,7 +18,8 @@
 import {
   FirebaseAnalytics,
   Gtag,
-  SettingsOptions
+  SettingsOptions,
+  DynamicConfig
 } from '@firebase/analytics-types';
 import {
   logEvent,
@@ -34,11 +35,11 @@ import {
   wrapOrCreateGtag,
   findGtagScriptOnPage
 } from './helpers';
-import { ANALYTICS_ID_FIELD } from './constants';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseInstallations } from '@firebase/installations-types';
-import { fetchDynamicConfig, getMeasurementId } from './get-config';
+import { fetchDynamicConfig } from './get-config';
+import { logger} from './logger';
 
 /**
  * Maps appId to full initialization promise.
@@ -46,9 +47,14 @@ import { fetchDynamicConfig, getMeasurementId } from './get-config';
 let fidPromisesMap: { [appId: string]: Promise<void> } = {};
 
 /**
- * Maps appId to measurementId fetch promises.
+ * List of dynamic config fetch promises.
  */
-let measurementIdPromisesMap: { [appId: string]: Promise<string> } = {};
+let dynamicConfigPromisesList: Array<Promise<DynamicConfig>> = [];
+
+/**
+ * Maps fetched measurementIds to appId.
+ */
+const measurementIdToAppId: { [measurementId: string]: string } = {};
 
 /**
  * Name for window global data layer array used by GA: defaults to 'dataLayer'.
@@ -83,10 +89,12 @@ let globalInitDone: boolean = false;
  */
 export function resetGlobalVars(
   newGlobalInitDone = false,
-  newGaInitializedPromise = {}
+  newGaInitializedPromise = {},
+  newDynamicPromises = []
 ): void {
   globalInitDone = newGlobalInitDone;
-  fidPromisesMap = newGaInitializedPromise;
+  initializationPromisesMap = newGaInitializedPromise;
+  dynamicConfigPromisesList = newDynamicPromises;
   dataLayerName = 'dataLayer';
   gtagName = 'gtag';
 }
@@ -94,9 +102,10 @@ export function resetGlobalVars(
 /**
  * For testing
  */
-export function getGlobalVars(): { fidPromisesMap: { [gaId: string]: Promise<void> }} {
+export function getGlobalVars(): { initializationPromisesMap: { [gaId: string]: Promise<void> }, dynamicConfigPromisesList: Array<Promise<DynamicConfig>> } {
   return {
-    fidPromisesMap
+    initializationPromisesMap,
+    dynamicConfigPromisesList
   };
 }
 
@@ -150,7 +159,8 @@ export function factory(
 
     const { wrappedGtag, gtagCore } = wrapOrCreateGtag(
       initializationPromisesMap,
-      measurementIdPromisesMap,
+      dynamicConfigPromisesList,
+      measurementIdToAppId,
       dataLayerName,
       gtagName
     );
@@ -160,8 +170,13 @@ export function factory(
     globalInitDone = true;
   }
   // Async but non-blocking.
-  measurementIdPromisesMap[appId] = getMeasurementId(app);
-  initializationPromisesMap[appId] = initializeGAId(measurementIdPromisesMap[appId], installations, gtagCoreFunction);
+  const dynamicConfigPromise = fetchDynamicConfig(app);
+  // Once fetched, map measurementIds to appId, for ease of lookup in wrapped gtag function.
+  dynamicConfigPromise.then(config => measurementIdToAppId[config.measurementId] = config.appId).catch(e => logger.error(e));
+  // Add to list to track state of all dynamic config promises.
+  dynamicConfigPromisesList.push(dynamicConfigPromise);
+  // This map reflects the completion state of all promises for each appId.
+  initializationPromisesMap[appId] = initializeGAId(dynamicConfigPromise, installations, gtagCoreFunction);
   // fidPromisesMap[appId] = initializeGAId(
   //   app,
   //   installations,
@@ -173,19 +188,19 @@ export function factory(
     logEvent: (eventName, eventParams, options) =>
       logEvent(
         wrappedGtagFunction,
-        measurementId,
+        dynamicConfigPromise,
         eventName,
         eventParams,
         options
       ),
     setCurrentScreen: (screenName, options) =>
-      setCurrentScreen(wrappedGtagFunction, measurementId, screenName, options),
+      setCurrentScreen(wrappedGtagFunction, dynamicConfigPromise, screenName, options),
     setUserId: (id, options) =>
-      setUserId(wrappedGtagFunction, measurementId, id, options),
+      setUserId(wrappedGtagFunction, dynamicConfigPromise, id, options),
     setUserProperties: (properties, options) =>
-      setUserProperties(wrappedGtagFunction, measurementId, properties, options),
+      setUserProperties(wrappedGtagFunction, dynamicConfigPromise, properties, options),
     setAnalyticsCollectionEnabled: enabled =>
-      setAnalyticsCollectionEnabled(measurementId, enabled)
+      setAnalyticsCollectionEnabled(dynamicConfigPromise, enabled)
   };
 
   return analyticsInstance;

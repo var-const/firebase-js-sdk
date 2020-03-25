@@ -20,9 +20,11 @@ import {
   Gtag,
   CustomParams,
   ControlParams,
-  EventParams
+  EventParams,
+  DynamicConfig
 } from '@firebase/analytics-types';
 import { GtagCommand } from './constants';
+import { logger} from './logger';
 /**
  * Logs an analytics event through the Firebase SDK.
  *
@@ -32,17 +34,21 @@ import { GtagCommand } from './constants';
  */
 export function logEvent(
   gtagFunction: Gtag,
-  analyticsId: string,
+  dynamicConfigPromise: Promise<DynamicConfig>,
   eventName: string,
   eventParams?: EventParams,
   options?: AnalyticsCallOptions
 ): void {
-  let params: EventParams | ControlParams = eventParams || {};
-  if (!options || !options.global) {
-    params = { ...eventParams, 'send_to': analyticsId };
+  if (options && options.global) {
+    gtagFunction(GtagCommand.EVENT, eventName, eventParams || {});
+  } else {
+    dynamicConfigPromise.then(({ measurementId }) => {
+      const params: EventParams | ControlParams = { ...eventParams, 'send_to': measurementId };
+      // Workaround for http://b/141370449 - third argument cannot be undefined.
+      gtagFunction(GtagCommand.EVENT, eventName, params || {});
+    })
+    .catch(e => logger.error(e));
   }
-  // Workaround for http://b/141370449 - third argument cannot be undefined.
-  gtagFunction(GtagCommand.EVENT, eventName, params || {});
 }
 
 // TODO: Brad is going to add `screen_name` to GA Gold config parameter schema
@@ -55,17 +61,20 @@ export function logEvent(
  */
 export function setCurrentScreen(
   gtagFunction: Gtag,
-  analyticsId: string,
+  dynamicConfigPromise: Promise<DynamicConfig>,
   screenName: string | null,
   options?: AnalyticsCallOptions
 ): void {
   if (options && options.global) {
     gtagFunction(GtagCommand.SET, { 'screen_name': screenName });
   } else {
-    gtagFunction(GtagCommand.CONFIG, analyticsId, {
-      update: true,
-      'screen_name': screenName
-    });
+    dynamicConfigPromise.then(({ measurementId }) => {
+      gtagFunction(GtagCommand.CONFIG, measurementId, {
+        update: true,
+        'screen_name': screenName
+      });
+    })
+    .catch(e => logger.error(e));
   }
 }
 
@@ -77,17 +86,20 @@ export function setCurrentScreen(
  */
 export function setUserId(
   gtagFunction: Gtag,
-  analyticsId: string,
+  dynamicConfigPromise: Promise<DynamicConfig>,
   id: string | null,
   options?: AnalyticsCallOptions
 ): void {
   if (options && options.global) {
     gtagFunction(GtagCommand.SET, { 'user_id': id });
   } else {
-    gtagFunction(GtagCommand.CONFIG, analyticsId, {
-      update: true,
-      'user_id': id
-    });
+    dynamicConfigPromise.then(({ measurementId }) => {
+      gtagFunction(GtagCommand.CONFIG, measurementId, {
+        update: true,
+        'user_id': id
+      });
+    })
+    .catch(e => logger.error(e));
   }
 }
 
@@ -99,7 +111,7 @@ export function setUserId(
  */
 export function setUserProperties(
   gtagFunction: Gtag,
-  analyticsId: string,
+  dynamicConfigPromise: Promise<DynamicConfig>,
   properties: CustomParams,
   options?: AnalyticsCallOptions
 ): void {
@@ -111,10 +123,13 @@ export function setUserProperties(
     }
     gtagFunction(GtagCommand.SET, flatProperties);
   } else {
-    gtagFunction(GtagCommand.CONFIG, analyticsId, {
-      update: true,
-      'user_properties': properties
-    });
+    dynamicConfigPromise.then(({ measurementId }) => {
+      gtagFunction(GtagCommand.CONFIG, measurementId, {
+        update: true,
+        'user_properties': properties
+      });
+    })
+    .catch(e => logger.error(e));
   }
 }
 
@@ -124,8 +139,11 @@ export function setUserProperties(
  * @param enabled If true, collection is enabled for this ID.
  */
 export function setAnalyticsCollectionEnabled(
-  analyticsId: string,
+  dynamicConfigPromise: Promise<DynamicConfig>,
   enabled: boolean
 ): void {
-  window[`ga-disable-${analyticsId}`] = !enabled;
+  dynamicConfigPromise.then(({ measurementId }) => {
+    window[`ga-disable-${measurementId}`] = !enabled;
+  })
+  .catch(e => logger.error(e));
 }

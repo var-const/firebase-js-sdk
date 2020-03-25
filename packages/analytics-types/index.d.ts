@@ -86,6 +86,18 @@ export interface SettingsOptions {
   dataLayerName?: string;
 }
 
+interface DynamicConfig {
+  "projectId": string,
+  "appId": string,
+  "databaseURL": string,
+  "storageBucket": string,
+  "locationId": string,
+  "apiKey": string,
+  "authDomain": string,
+  "messagingSenderId": string,
+  "measurementId": string
+};
+
 /**
  * Standard `gtag` function provided by gtag.js.
  */
