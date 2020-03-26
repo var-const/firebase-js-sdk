@@ -102,38 +102,35 @@ function wrapGtag(
    * @param measurementId GA Measurement ID.
    * @param gtagParams Config params.
    */
-  function gtagOnConfig(
+  async function gtagOnConfig(
     measurementId: string,
     gtagParams?: ControlParams & EventParams & CustomParams
-  ): void {
-    let initializationPromiseToWaitFor: Promise<void>;
+  ): Promise<void> {
     // If config is fetched, we know the appId and can use it to look up what FID promise we
     /// are waiting for, and wait only on that one.
     const correspondingAppId = measurementIdToAppId[measurementId as string];
-    if (correspondingAppId) {
-      initializationPromiseToWaitFor =
-        initializationPromisesMap[correspondingAppId];
-    } else {
-      // If config is not fetched, wait for all configs (we don't know which one we need) and
-      // find the appId (if any) corresponding to this measurementId. If there is one, wait on
-      // that appId's initialization promise. If there is none, promise resolves and gtag
-      // call goes through.
-      initializationPromiseToWaitFor = Promise.all(dynamicConfigPromisesList)
-        .then(dynamicConfigResults => {
-          const foundConfig = dynamicConfigResults.find(
-            config => config.measurementId === measurementId
-          );
-          if (foundConfig) {
-            return initializationPromisesMap[foundConfig.appId];
-          }
-        })
-        .catch(e => logger.error(e));
+    try {
+      if (correspondingAppId) {
+        await initializationPromisesMap[correspondingAppId];
+      } else {
+        // If config is not fetched, wait for all configs (we don't know which one we need) and
+        // find the appId (if any) corresponding to this measurementId. If there is one, wait on
+        // that appId's initialization promise. If there is none, promise resolves and gtag
+        // call goes through.
+        const dynamicConfigResults = await Promise.all(
+          dynamicConfigPromisesList
+        );
+        const foundConfig = dynamicConfigResults.find(
+          config => config.measurementId === measurementId
+        );
+        if (foundConfig) {
+          await initializationPromisesMap[foundConfig.appId];
+        }
+      }
+    } catch (e) {
+      logger.error(e);
     }
-    initializationPromiseToWaitFor
-      .then(() => {
-        gtagCore(GtagCommand.CONFIG, measurementId, gtagParams);
-      })
-      .catch(e => logger.error(e));
+    gtagCore(GtagCommand.CONFIG, measurementId, gtagParams);
   }
 
   /**
@@ -142,58 +139,62 @@ function wrapGtag(
    * @param measurementId GA Measurement ID.
    * @param gtagParams Event params.
    */
-  function gtagOnEvent(
+  async function gtagOnEvent(
     measurementId: string,
     gtagParams?: ControlParams & EventParams & CustomParams
-  ): void {
-    let initializationPromisesToWaitFor: Array<Promise<void>> = [];
-    // If there's a 'send_to' param, check if any ID specified matches
-    // a FID we have begun a fetch on.
-    if (gtagParams && gtagParams['send_to']) {
-      let gaSendToList: string | string[] = gtagParams['send_to'];
-      // Make it an array if is isn't, so it can be dealt with the same way.
-      if (!Array.isArray(gaSendToList)) {
-        gaSendToList = [gaSendToList];
-      }
-      // Checking 'send_to' fields requires having all measurement ID results back from
-      // the dynamic config fetch.
-      Promise.all(dynamicConfigPromisesList)
-        .then(dynamicConfigResults => {
-          for (const sendToId of gaSendToList) {
-            const foundConfig = dynamicConfigResults.find(
-              config => config.measurementId === sendToId
-            );
-            const initializationPromise =
-              foundConfig && initializationPromisesMap[foundConfig.appId];
-            // Groups will not be in the map.
-            if (initializationPromise) {
-              initializationPromisesToWaitFor.push(initializationPromise);
-            } else {
-              // There is an item in 'send_to' that is not associated
-              // directly with an FID, possibly a group.  Empty this array
-              // and let it get populated below.
-              initializationPromisesToWaitFor = [];
-              break;
-            }
-          }
-        })
-        .catch(e => logger.error(e));
-    }
+  ): Promise<void> {
+    try {
+      let initializationPromisesToWaitFor: Array<Promise<void>> = [];
 
-    // This will be unpopulated if there was no 'send_to' field , or
-    // if not all entries in the 'send_to' field could be mapped to
-    // a FID. In these cases, wait on all pending initialization promises.
-    if (initializationPromisesToWaitFor.length === 0) {
-      initializationPromisesToWaitFor = Object.values(
-        initializationPromisesMap
-      );
-    }
-    // Run core gtag function with args after all relevant initialization
-    // promises have been resolved.
-    Promise.all(initializationPromisesToWaitFor)
+      // If there's a 'send_to' param, check if any ID specified matches
+      // a FID we have begun a fetch on.
+      if (gtagParams && gtagParams['send_to']) {
+        let gaSendToList: string | string[] = gtagParams['send_to'];
+        // Make it an array if is isn't, so it can be dealt with the same way.
+        if (!Array.isArray(gaSendToList)) {
+          gaSendToList = [gaSendToList];
+        }
+        // Checking 'send_to' fields requires having all measurement ID results back from
+        // the dynamic config fetch.
+        const dynamicConfigResults = await Promise.all(
+          dynamicConfigPromisesList
+        );
+        for (const sendToId of gaSendToList) {
+          const foundConfig = dynamicConfigResults.find(
+            config => config.measurementId === sendToId
+          );
+          const initializationPromise =
+            foundConfig && initializationPromisesMap[foundConfig.appId];
+          // Groups will not be in the map.
+          if (initializationPromise) {
+            initializationPromisesToWaitFor.push(initializationPromise);
+          } else {
+            // There is an item in 'send_to' that is not associated
+            // directly with an FID, possibly a group.  Empty this array
+            // and let it get populated below.
+            initializationPromisesToWaitFor = [];
+            break;
+          }
+        }
+      }
+
+      // This will be unpopulated if there was no 'send_to' field , or
+      // if not all entries in the 'send_to' field could be mapped to
+      // a FID. In these cases, wait on all pending initialization promises.
+      if (initializationPromisesToWaitFor.length === 0) {
+        initializationPromisesToWaitFor = Object.values(
+          initializationPromisesMap
+        );
+      }
+
+      // Run core gtag function with args after all relevant initialization
+      // promises have been resolved.
+      await Promise.all(initializationPromisesToWaitFor);
       // Workaround for http://b/141370449 - third argument cannot be undefined.
-      .then(() => gtagCore(GtagCommand.EVENT, measurementId, gtagParams || {}))
-      .catch(e => logger.error(e));
+      gtagCore(GtagCommand.EVENT, measurementId, gtagParams || {});
+    } catch (e) {
+      logger.error(e);
+    }
   }
 
   /**
@@ -202,24 +203,27 @@ function wrapGtag(
    * @param idOrNameOrParams Measurement ID if command is EVENT/CONFIG, params if command is SET.
    * @param gtagParams Params if event is EVENT/CONFIG.
    */
-  function gtagWrapper(
+  async function gtagWrapper(
     command: 'config' | 'set' | 'event',
     idOrNameOrParams: string | ControlParams,
     gtagParams?: ControlParams & EventParams & CustomParams
-  ): void {
-    // If event, check that relevant initialization promises have completed.
-    if (command === GtagCommand.EVENT) {
-      // If EVENT, second arg must be measurementId.
-      gtagOnEvent(idOrNameOrParams as string, gtagParams);
-    } else if (command === GtagCommand.CONFIG) {
-      // If CONFIG, second arg must be measurementId.
-      gtagOnConfig(idOrNameOrParams as string, gtagParams);
-    } else {
-      // If SET, second arg must be params.
-      gtagCore(GtagCommand.SET, idOrNameOrParams as CustomParams);
+  ): Promise<void> {
+    try {
+      // If event, check that relevant initialization promises have completed.
+      if (command === GtagCommand.EVENT) {
+        // If EVENT, second arg must be measurementId.
+        await gtagOnEvent(idOrNameOrParams as string, gtagParams);
+      } else if (command === GtagCommand.CONFIG) {
+        // If CONFIG, second arg must be measurementId.
+        await gtagOnConfig(idOrNameOrParams as string, gtagParams);
+      } else {
+        // If SET, second arg must be params.
+        gtagCore(GtagCommand.SET, idOrNameOrParams as CustomParams);
+      }
+    } catch (e) {
+      logger.error(e);
     }
   }
-
   return gtagWrapper;
 }
 
