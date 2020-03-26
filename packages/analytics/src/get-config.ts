@@ -21,7 +21,7 @@ import { DynamicConfig } from '@firebase/analytics-types';
 const DYNAMIC_CONFIG_URL =
   'https://firebase.googleapis.com/v1alpha/projects/-/apps/{app-id}/webConfig';
 
-export function getHeaders(apiKey: string): Headers {
+function getHeaders(apiKey: string): Headers {
   return new Headers({
     Accept: 'application/json',
     'x-goog-api-key': apiKey
