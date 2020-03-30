@@ -29,7 +29,6 @@ import {
   setAnalyticsCollectionEnabled
 } from './functions';
 import {
-  initializeGAId,
   insertScriptTag,
   getOrCreateDataLayer,
   wrapOrCreateGtag,
@@ -38,13 +37,12 @@ import {
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseInstallations } from '@firebase/installations-types';
-import { fetchDynamicConfig } from './get-config';
-import { logger } from './logger';
+import { initializeGAId } from './initialize-ids';
 
 /**
  * Maps appId to full initialization promise.
  */
-let initializationPromisesMap: { [appId: string]: Promise<void> } = {};
+let initializationPromisesMap: { [appId: string]: Promise<string> } = {};
 
 /**
  * List of dynamic config fetch promises.
@@ -103,7 +101,7 @@ export function resetGlobalVars(
  * For testing
  */
 export function getGlobalVars(): {
-  initializationPromisesMap: { [gaId: string]: Promise<void> };
+  initializationPromisesMap: { [gaId: string]: Promise<string> };
   dynamicConfigPromisesList: Array<Promise<DynamicConfig>>;
 } {
   return {
@@ -173,31 +171,21 @@ export function factory(
     globalInitDone = true;
   }
   // Async but non-blocking.
-  const dynamicConfigPromise = fetchDynamicConfig(app);
-  // Once fetched, map measurementIds to appId, for ease of lookup in wrapped gtag function.
-  dynamicConfigPromise
-    .then(config => (measurementIdToAppId[config.measurementId] = config.appId))
-    .catch(e => logger.error(e));
-  // Add to list to track state of all dynamic config promises.
-  dynamicConfigPromisesList.push(dynamicConfigPromise);
   // This map reflects the completion state of all promises for each appId.
   initializationPromisesMap[appId] = initializeGAId(
-    dynamicConfigPromise,
+    app,
+    dynamicConfigPromisesList,
+    measurementIdToAppId,
     installations,
     gtagCoreFunction
   );
-  // fidPromisesMap[appId] = initializeGAId(
-  //   app,
-  //   installations,
-  //   gtagCoreFunction
-  // );
 
   const analyticsInstance: FirebaseAnalytics = {
     app,
     logEvent: (eventName, eventParams, options) =>
       logEvent(
         wrappedGtagFunction,
-        dynamicConfigPromise,
+        initializationPromisesMap[appId],
         eventName,
         eventParams,
         options
@@ -205,21 +193,21 @@ export function factory(
     setCurrentScreen: (screenName, options) =>
       setCurrentScreen(
         wrappedGtagFunction,
-        dynamicConfigPromise,
+        initializationPromisesMap[appId],
         screenName,
         options
       ),
     setUserId: (id, options) =>
-      setUserId(wrappedGtagFunction, dynamicConfigPromise, id, options),
+      setUserId(wrappedGtagFunction, initializationPromisesMap[appId], id, options),
     setUserProperties: (properties, options) =>
       setUserProperties(
         wrappedGtagFunction,
-        dynamicConfigPromise,
+        initializationPromisesMap[appId],
         properties,
         options
       ),
     setAnalyticsCollectionEnabled: enabled =>
-      setAnalyticsCollectionEnabled(dynamicConfigPromise, enabled)
+      setAnalyticsCollectionEnabled(initializationPromisesMap[appId], enabled)
   };
 
   return analyticsInstance;

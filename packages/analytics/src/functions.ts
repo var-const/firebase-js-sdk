@@ -20,8 +20,7 @@ import {
   Gtag,
   CustomParams,
   ControlParams,
-  EventParams,
-  DynamicConfig
+  EventParams
 } from '@firebase/analytics-types';
 import { GtagCommand } from './constants';
 import { logger } from './logger';
@@ -34,7 +33,7 @@ import { logger } from './logger';
  */
 export function logEvent(
   gtagFunction: Gtag,
-  dynamicConfigPromise: Promise<DynamicConfig>,
+  initializationPromise: Promise<string>,
   eventName: string,
   eventParams?: EventParams,
   options?: AnalyticsCallOptions
@@ -42,8 +41,8 @@ export function logEvent(
   if (options && options.global) {
     gtagFunction(GtagCommand.EVENT, eventName, eventParams || {});
   } else {
-    dynamicConfigPromise
-      .then(({ measurementId }) => {
+    initializationPromise
+      .then((measurementId) => {
         const params: EventParams | ControlParams = {
           ...eventParams,
           'send_to': measurementId
@@ -65,15 +64,15 @@ export function logEvent(
  */
 export function setCurrentScreen(
   gtagFunction: Gtag,
-  dynamicConfigPromise: Promise<DynamicConfig>,
+  initializationPromise: Promise<string>,
   screenName: string | null,
   options?: AnalyticsCallOptions
 ): void {
   if (options && options.global) {
     gtagFunction(GtagCommand.SET, { 'screen_name': screenName });
   } else {
-    dynamicConfigPromise
-      .then(({ measurementId }) => {
+    initializationPromise
+      .then((measurementId) => {
         gtagFunction(GtagCommand.CONFIG, measurementId, {
           update: true,
           'screen_name': screenName
@@ -91,15 +90,15 @@ export function setCurrentScreen(
  */
 export function setUserId(
   gtagFunction: Gtag,
-  dynamicConfigPromise: Promise<DynamicConfig>,
+  initializationPromise: Promise<string>,
   id: string | null,
   options?: AnalyticsCallOptions
 ): void {
   if (options && options.global) {
     gtagFunction(GtagCommand.SET, { 'user_id': id });
   } else {
-    dynamicConfigPromise
-      .then(({ measurementId }) => {
+    initializationPromise
+      .then((measurementId) => {
         gtagFunction(GtagCommand.CONFIG, measurementId, {
           update: true,
           'user_id': id
@@ -117,7 +116,7 @@ export function setUserId(
  */
 export function setUserProperties(
   gtagFunction: Gtag,
-  dynamicConfigPromise: Promise<DynamicConfig>,
+  initializationPromise: Promise<string>,
   properties: CustomParams,
   options?: AnalyticsCallOptions
 ): void {
@@ -129,8 +128,8 @@ export function setUserProperties(
     }
     gtagFunction(GtagCommand.SET, flatProperties);
   } else {
-    dynamicConfigPromise
-      .then(({ measurementId }) => {
+    initializationPromise
+      .then((measurementId) => {
         gtagFunction(GtagCommand.CONFIG, measurementId, {
           update: true,
           'user_properties': properties
@@ -146,11 +145,11 @@ export function setUserProperties(
  * @param enabled If true, collection is enabled for this ID.
  */
 export function setAnalyticsCollectionEnabled(
-  dynamicConfigPromise: Promise<DynamicConfig>,
+  initializationPromise: Promise<string>,
   enabled: boolean
 ): void {
-  dynamicConfigPromise
-    .then(({ measurementId }) => {
+  initializationPromise
+    .then((measurementId) => {
       window[`ga-disable-${measurementId}`] = !enabled;
     })
     .catch(e => logger.error(e));

@@ -23,43 +23,8 @@ import {
   ControlParams,
   EventParams
 } from '@firebase/analytics-types';
-import { GtagCommand, GA_FID_KEY, ORIGIN_KEY, GTAG_URL } from './constants';
-import { FirebaseInstallations } from '@firebase/installations-types';
+import { GtagCommand, GTAG_URL } from './constants';
 import { logger } from './logger';
-
-/**
- * Initialize the analytics instance in gtag.js by calling config command with fid.
- *
- * NOTE: We combine analytics initialization and setting fid together because we want fid to be
- * part of the `page_view` event that's sent during the initialization
- * @param app Firebase app
- * @param gtagCore The gtag function that's not wrapped.
- */
-export async function initializeGAId(
-  dynamicConfigPromise: Promise<DynamicConfig>,
-  installations: FirebaseInstallations,
-  gtagCore: Gtag
-): Promise<void> {
-  const [dynamicConfig, fid] = await Promise.all([
-    dynamicConfigPromise,
-    installations.getId()
-  ]);
-
-  // This command initializes gtag.js and only needs to be called once for the entire web app,
-  // but since it is idempotent, we can call it multiple times.
-  // We keep it together with other initialization logic for better code structure.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  gtagCore('js' as any, new Date());
-
-  // It should be the first config command called on this GA-ID
-  // Initialize this GA-ID and set FID on it using the gtag config API.
-  gtagCore(GtagCommand.CONFIG, dynamicConfig.measurementId, {
-    [GA_FID_KEY]: fid,
-    // guard against developers accidentally setting properties with prefix `firebase_`
-    [ORIGIN_KEY]: 'firebase',
-    update: true
-  });
-}
 
 export function insertScriptTag(dataLayerName: string): void {
   const script = document.createElement('script');
@@ -92,7 +57,7 @@ export function getOrCreateDataLayer(dataLayerName: string): DataLayer {
  */
 function wrapGtag(
   gtagCore: Gtag,
-  initializationPromisesMap: { [appId: string]: Promise<void> },
+  initializationPromisesMap: { [appId: string]: Promise<string> },
   dynamicConfigPromisesList: Array<Promise<DynamicConfig>>,
   measurementIdToAppId: { [measurementId: string]: string }
 ): Function {
@@ -144,7 +109,7 @@ function wrapGtag(
     gtagParams?: ControlParams & EventParams & CustomParams
   ): Promise<void> {
     try {
-      let initializationPromisesToWaitFor: Array<Promise<void>> = [];
+      let initializationPromisesToWaitFor: Array<Promise<string>> = [];
 
       // If there's a 'send_to' param, check if any ID specified matches
       // a FID we have begun a fetch on.
@@ -237,7 +202,7 @@ function wrapGtag(
  * @param gtagFunctionName Name of global gtag function ("gtag" if not user-specified)
  */
 export function wrapOrCreateGtag(
-  initializationPromisesMap: { [appId: string]: Promise<void> },
+  initializationPromisesMap: { [appId: string]: Promise<string> },
   dynamicConfigPromisesList: Array<Promise<DynamicConfig>>,
   measurementIdToAppId: { [measurementId: string]: string },
   dataLayerName: string,
