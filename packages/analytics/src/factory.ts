@@ -198,7 +198,12 @@ export function factory(
         options
       ),
     setUserId: (id, options) =>
-      setUserId(wrappedGtagFunction, initializationPromisesMap[appId], id, options),
+      setUserId(
+        wrappedGtagFunction,
+        initializationPromisesMap[appId],
+        id,
+        options
+      ),
     setUserProperties: (properties, options) =>
       setUserProperties(
         wrappedGtagFunction,

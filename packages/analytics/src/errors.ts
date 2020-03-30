@@ -41,10 +41,10 @@ const ERRORS: ErrorMap<AnalyticsError> = {
     'or it will have no effect.',
   [AnalyticsError.INTEROP_COMPONENT_REG_FAILED]:
     'Firebase Analytics Interop Component failed to instantiate',
-    [AnalyticsError.FETCH_THROTTLE]:
-      'The config fetch request timed out while in an exponential backoff state.' +
-      ' Configure timeout using "fetchTimeoutMillis" SDK setting.' +
-      ' Unix timestamp in milliseconds when fetch request throttling ends: {$throttleEndTimeMillis}.',
+  [AnalyticsError.FETCH_THROTTLE]:
+    'The config fetch request timed out while in an exponential backoff state.' +
+    ' Configure timeout using "fetchTimeoutMillis" SDK setting.' +
+    ' Unix timestamp in milliseconds when fetch request throttling ends: {$throttleEndTimeMillis}.'
 };
 
 interface ErrorParams {
