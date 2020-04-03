@@ -87,11 +87,11 @@ let globalInitDone: boolean = false;
  */
 export function resetGlobalVars(
   newGlobalInitDone = false,
-  newGaInitializedPromise = {},
+  newInitializationPromisesMap = {},
   newDynamicPromises = []
 ): void {
   globalInitDone = newGlobalInitDone;
-  initializationPromisesMap = newGaInitializedPromise;
+  initializationPromisesMap = newInitializationPromisesMap;
   dynamicConfigPromisesList = newDynamicPromises;
   dataLayerName = 'dataLayer';
   gtagName = 'gtag';
@@ -131,18 +131,16 @@ export function factory(
   app: FirebaseApp,
   installations: FirebaseInstallations
 ): FirebaseAnalytics {
-  // const analyticsId = app.options[ANALYTICS_ID_FIELD];
-  // if (!analyticsId) {
-  //   throw ERROR_FACTORY.create(AnalyticsError.NO_GA_ID);
-  // }
   const appId = app.options.appId;
   if (!appId) {
-    //TODO: Change to AppId error
-    throw ERROR_FACTORY.create(AnalyticsError.NO_GA_ID);
+    throw ERROR_FACTORY.create(AnalyticsError.NO_APP_ID);
+  }
+
+  if (!app.options.apiKey) {
+    throw ERROR_FACTORY.create(AnalyticsError.NO_API_KEY);
   }
 
   if (initializationPromisesMap[appId] != null) {
-    //TODO: Change to AppId error?
     throw ERROR_FACTORY.create(AnalyticsError.ALREADY_EXISTS, {
       id: appId
     });

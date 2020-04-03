@@ -15,11 +15,16 @@
  * limitations under the License.
  */
 
+/**
+ * @fileoverview Most logic is copied from packages/remote-config/src/client/retrying_client.ts
+ */
+
 import { FirebaseApp } from '@firebase/app-types';
 import { DynamicConfig } from '@firebase/analytics-types';
 import { FirebaseError } from '@firebase/util';
 import { calculateBackoffMillis } from './exponential_backoff';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
+import { logger } from './logger';
 
 /**
  * Encapsulates metadata concerning throttled fetch requests.
@@ -46,22 +51,53 @@ function getHeaders(apiKey: string): Headers {
 }
 
 /**
+ * Validate needed fields in app.options and return them.
+ *
+ * @param app
+ */
+function getAppFields(app: FirebaseApp): { appId: string; apiKey: string } {
+  if (!app.options.apiKey) {
+    throw ERROR_FACTORY.create(AnalyticsError.NO_API_KEY);
+  }
+  if (!app.options.appId) {
+    throw ERROR_FACTORY.create(AnalyticsError.NO_APP_ID);
+  }
+  return {
+    appId: app.options.appId,
+    apiKey: app.options.apiKey
+  };
+}
+
+/**
  * Fetches dynamic config from backend.
  * @param app Firebase app to fetch config for.
  */
 export async function fetchDynamicConfig(
   app: FirebaseApp
 ): Promise<DynamicConfig> {
-  if (!app.options.apiKey || !app.options.appId) {
-    //TODO: Put in proper error, may need two.
-    throw new Error('no api key');
-  }
+  const { appId, apiKey } = getAppFields(app);
   const request: RequestInit = {
     method: 'GET',
-    headers: getHeaders(app.options.apiKey)
+    headers: getHeaders(apiKey)
   };
-  const appUrl = DYNAMIC_CONFIG_URL.replace('{app-id}', app.options.appId);
+  const appUrl = DYNAMIC_CONFIG_URL.replace('{app-id}', appId);
   const response = await fetch(appUrl, request);
+  if (response.status !== 200 && response.status !== 304) {
+    let errorMessage = '';
+    try {
+      // Try to get any error message text from server response.
+      const jsonResponse = (await response.json()) as {
+        error?: { message?: string };
+      };
+      if (jsonResponse.error?.message) {
+        errorMessage = jsonResponse.error.message;
+      }
+    } catch (ignored) {}
+    throw ERROR_FACTORY.create(AnalyticsError.CONFIG_FETCH_FAILED, {
+      statusCode: response.status,
+      responseMessage: errorMessage
+    });
+  }
   return response.json();
 }
 
@@ -72,14 +108,9 @@ export async function fetchDynamicConfig(
 export async function fetchDynamicConfigWithRetry(
   app: FirebaseApp
 ): Promise<DynamicConfig> {
-  if (!app.options.apiKey || !app.options.appId) {
-    //TODO: Put in proper error, may need two.
-    throw new Error('no api key');
-  }
+  const { appId } = getAppFields(app);
 
-  const throttleMetadata: ThrottleMetadata = appThrottleMetadata[
-    app.options.appId
-  ] || {
+  const throttleMetadata: ThrottleMetadata = appThrottleMetadata[appId] || {
     backoffCount: 0,
     throttleEndTimeMillis: Date.now()
   };
@@ -105,10 +136,7 @@ async function attemptFetchDynamicConfigWithRetry(
   { throttleEndTimeMillis, backoffCount }: ThrottleMetadata,
   signal: AnalyticsAbortSignal
 ): Promise<DynamicConfig> {
-  if (!app.options.apiKey || !app.options.appId) {
-    //TODO: Put in proper error, may need two.
-    throw new Error('no api key');
-  }
+  const { appId } = getAppFields(app);
   // Starts with a (potentially zero) timeout to support resumption from stored state.
   // Ensures the throttle end time is honored if the last attempt timed out.
   // Note the SDK will never make a request if the fetch timeout expires at this point.
@@ -118,28 +146,43 @@ async function attemptFetchDynamicConfigWithRetry(
     const response = await fetchDynamicConfig(app);
 
     // Note the SDK only clears throttle state if response is success or non-retriable.
-    delete appThrottleMetadata[app.options.appId];
+    delete appThrottleMetadata[appId];
 
     return response;
   } catch (e) {
     if (!isRetriableError(e)) {
-      delete appThrottleMetadata[app.options.appId];
+      delete appThrottleMetadata[appId];
       throw e;
     }
 
+    const backoffMillis = calculateBackoffMillis(backoffCount);
+
     // Increments backoff state.
     const throttleMetadata = {
-      throttleEndTimeMillis: Date.now() + calculateBackoffMillis(backoffCount),
+      throttleEndTimeMillis: Date.now() + backoffMillis,
       backoffCount: backoffCount + 1
     };
 
     // Persists state.
-    appThrottleMetadata[app.options.appId] = throttleMetadata;
+    appThrottleMetadata[appId] = throttleMetadata;
+    logger.debug(`Calling attemptFetch again in ${backoffMillis} millis`);
 
     return attemptFetchDynamicConfigWithRetry(app, throttleMetadata, signal);
   }
 }
 
+/**
+ * Supports waiting on a backoff by:
+ *
+ * <ul>
+ *   <li>Promisifying setTimeout, so we can set a timeout in our Promise chain</li>
+ *   <li>Listening on a signal bus for abort events, just like the Fetch API</li>
+ *   <li>Failing in the same way the Fetch API fails, so timing out a live request and a throttled
+ *       request appear the same.</li>
+ * </ul>
+ *
+ * <p>Visible for testing.
+ */
 export function setAbortableTimeout(
   signal: AnalyticsAbortSignal,
   throttleEndTimeMillis: number

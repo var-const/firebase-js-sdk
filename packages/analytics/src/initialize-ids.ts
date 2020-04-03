@@ -18,7 +18,7 @@
 import { DynamicConfig, Gtag } from '@firebase/analytics-types';
 import { GtagCommand, GA_FID_KEY, ORIGIN_KEY } from './constants';
 import { FirebaseInstallations } from '@firebase/installations-types';
-import { fetchDynamicConfig } from './get-config';
+import { fetchDynamicConfigWithRetry } from './get-config';
 import { logger } from './logger';
 import { FirebaseApp } from '@firebase/app-types';
 
@@ -42,7 +42,7 @@ export async function initializeGAId(
   installations: FirebaseInstallations,
   gtagCore: Gtag
 ): Promise<string> {
-  const dynamicConfigPromise = fetchDynamicConfig(app);
+  const dynamicConfigPromise = fetchDynamicConfigWithRetry(app);
   // Once fetched, map measurementIds to appId, for ease of lookup in wrapped gtag function.
   dynamicConfigPromise
     .then(config => (measurementIdToAppId[config.measurementId] = config.appId))
