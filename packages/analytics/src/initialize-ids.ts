@@ -29,6 +29,11 @@ import { FirebaseApp } from '@firebase/app-types';
  * part of the `page_view` event that's sent during the initialization
  * @param app Firebase app
  * @param gtagCore The gtag function that's not wrapped.
+ * @param dynamicConfigPromisesList Array of all dynamic config promises.
+ * @param measurementIdToAppId Maps measurementID to appID.
+ * @param installations FirebaseInstallations instance.
+ * 
+ * @returns Measurement ID.
  */
 export async function initializeGAId(
   app: FirebaseApp,

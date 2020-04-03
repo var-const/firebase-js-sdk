@@ -123,6 +123,7 @@ async function attemptFetchDynamicConfigWithRetry(
     return response;
   } catch (e) {
     if (!isRetriableError(e)) {
+      delete appThrottleMetadata[app.options.appId];
       throw e;
     }
 
