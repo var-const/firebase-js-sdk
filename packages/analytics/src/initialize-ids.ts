@@ -35,7 +35,7 @@ import { FirebaseApp } from '@firebase/app-types';
  * 
  * @returns Measurement ID.
  */
-export async function initializeGAId(
+export async function initializeIds(
   app: FirebaseApp,
   dynamicConfigPromisesList: Array<Promise<DynamicConfig>>,
   measurementIdToAppId: { [key: string]: string },

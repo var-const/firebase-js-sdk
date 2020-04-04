@@ -37,7 +37,7 @@ import {
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseInstallations } from '@firebase/installations-types';
-import { initializeGAId } from './initialize-ids';
+import { initializeIds } from './initialize-ids';
 
 /**
  * Maps appId to full initialization promise.
@@ -170,7 +170,7 @@ export function factory(
   }
   // Async but non-blocking.
   // This map reflects the completion state of all promises for each appId.
-  initializationPromisesMap[appId] = initializeGAId(
+  initializationPromisesMap[appId] = initializeIds(
     app,
     dynamicConfigPromisesList,
     measurementIdToAppId,
