@@ -53,7 +53,7 @@ function stubFetch(status: number, body: object): void {
 
 describe('FirebaseAnalytics instance tests', () => {
   it('Throws if no appId in config', () => {
-    const app = getFakeApp({apiKey: fakeAppParams.apiKey});
+    const app = getFakeApp({ apiKey: fakeAppParams.apiKey });
     const installations = getFakeInstallations();
     expect(() => analyticsFactory(app, installations)).to.throw(
       'field is empty'

@@ -32,7 +32,7 @@ import { FirebaseApp } from '@firebase/app-types';
  * @param dynamicConfigPromisesList Array of all dynamic config promises.
  * @param measurementIdToAppId Maps measurementID to appID.
  * @param installations FirebaseInstallations instance.
- * 
+ *
  * @returns Measurement ID.
  */
 export async function initializeIds(

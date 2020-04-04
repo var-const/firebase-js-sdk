@@ -85,9 +85,15 @@ describe('FirebaseAnalytics methods', () => {
   });
 
   it('logEvent() with no event params globally calls gtag function correctly', async () => {
-    await logEvent(gtagStub, fakeInitializationPromise, EventName.ADD_TO_CART, undefined, {
-      global: true
-    });
+    await logEvent(
+      gtagStub,
+      fakeInitializationPromise,
+      EventName.ADD_TO_CART,
+      undefined,
+      {
+        global: true
+      }
+    );
 
     expect(gtagStub).to.have.been.calledWith(
       GtagCommand.EVENT,
@@ -98,14 +104,20 @@ describe('FirebaseAnalytics methods', () => {
 
   it('setCurrentScreen() calls gtag correctly (instance)', async () => {
     await setCurrentScreen(gtagStub, fakeInitializationPromise, 'home');
-    expect(gtagStub).to.have.been.calledWith(GtagCommand.CONFIG, fakeMeasurementId, {
-      'screen_name': 'home',
-      update: true
-    });
+    expect(gtagStub).to.have.been.calledWith(
+      GtagCommand.CONFIG,
+      fakeMeasurementId,
+      {
+        'screen_name': 'home',
+        update: true
+      }
+    );
   });
 
   it('setCurrentScreen() calls gtag correctly (global)', async () => {
-    await setCurrentScreen(gtagStub, fakeInitializationPromise, 'home', { global: true });
+    await setCurrentScreen(gtagStub, fakeInitializationPromise, 'home', {
+      global: true
+    });
     expect(gtagStub).to.be.calledWith(GtagCommand.SET, {
       'screen_name': 'home'
     });
@@ -113,14 +125,20 @@ describe('FirebaseAnalytics methods', () => {
 
   it('setUserId() calls gtag correctly (instance)', async () => {
     await setUserId(gtagStub, fakeInitializationPromise, 'user123');
-    expect(gtagStub).to.have.been.calledWith(GtagCommand.CONFIG, fakeMeasurementId, {
-      'user_id': 'user123',
-      update: true
-    });
+    expect(gtagStub).to.have.been.calledWith(
+      GtagCommand.CONFIG,
+      fakeMeasurementId,
+      {
+        'user_id': 'user123',
+        update: true
+      }
+    );
   });
 
   it('setUserId() calls gtag correctly (global)', async () => {
-    await setUserId(gtagStub, fakeInitializationPromise, 'user123', { global: true });
+    await setUserId(gtagStub, fakeInitializationPromise, 'user123', {
+      global: true
+    });
     expect(gtagStub).to.be.calledWith(GtagCommand.SET, {
       'user_id': 'user123'
     });
@@ -131,13 +149,17 @@ describe('FirebaseAnalytics methods', () => {
       'currency': 'USD',
       'language': 'en'
     });
-    expect(gtagStub).to.have.been.calledWith(GtagCommand.CONFIG, fakeMeasurementId, {
-      'user_properties': {
-        'currency': 'USD',
-        'language': 'en'
-      },
-      update: true
-    });
+    expect(gtagStub).to.have.been.calledWith(
+      GtagCommand.CONFIG,
+      fakeMeasurementId,
+      {
+        'user_properties': {
+          'currency': 'USD',
+          'language': 'en'
+        },
+        update: true
+      }
+    );
   });
 
   it('setUserProperties() calls gtag correctly (global)', async () => {

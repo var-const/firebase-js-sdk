@@ -18,9 +18,7 @@
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import '../testing/setup';
-import {
-  initializeIds
-} from './initialize-ids';
+import { initializeIds } from './initialize-ids';
 import {
   getFakeApp,
   getFakeInstallations
@@ -35,9 +33,12 @@ describe('FirebaseAnalytics methods', () => {
   it('initializeIds gets FID from installations and calls gtag config with it', async () => {
     const gtagStub: SinonStub = stub();
     const fetchStub = stub(window, 'fetch');
-    const mockResponse = new window.Response(JSON.stringify({ measurementId: mockAnalyticsId }), {
-      status: 200
-    });
+    const mockResponse = new window.Response(
+      JSON.stringify({ measurementId: mockAnalyticsId }),
+      {
+        status: 200
+      }
+    );
     fetchStub.returns(Promise.resolve(mockResponse));
     const app = getFakeApp(fakeAppParams);
     const installations = getFakeInstallations(mockFid);
