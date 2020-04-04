@@ -23,7 +23,7 @@ const files = [`**/*.test.ts`];
 module.exports = function(config) {
   config.set({
     ...karmaBase,
-    files: ['index.test.ts'],
+    files: ['src/functions.test.ts'],
     // files,
     preprocessors: { '**/*.ts': ['webpack', 'sourcemap'] },
     frameworks: ['mocha']

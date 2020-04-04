@@ -36,7 +36,7 @@ import { removeGtagScript } from './testing/gtag-script-util';
 import { Deferred } from '@firebase/util';
 
 let analyticsInstance: FirebaseAnalytics = {} as FirebaseAnalytics;
-const analyticsId = 'abcd-efgh';
+const fakeMeasurementId = 'abcd-efgh';
 const fakeAppParams = { appId: 'abcdefgh12345:23405', apiKey: 'AAbbCCdd12345' };
 const gtagStub: SinonStub = stub();
 let fetchStub: SinonStub = stub();
@@ -106,7 +106,7 @@ describe('FirebaseAnalytics instance tests', () => {
       expect(analyticsInstance.app).to.equal(app);
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
-      stubFetch(200, { measurementId: analyticsId });
+      stubFetch(200, { measurementId: fakeMeasurementId });
       analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
@@ -119,7 +119,7 @@ describe('FirebaseAnalytics instance tests', () => {
       expect(gtagStub).to.have.been.calledWith('js');
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.CONFIG,
-        analyticsId,
+        fakeMeasurementId,
         {
           'firebase_id': 'fid-1234',
           origin: 'firebase',
@@ -181,7 +181,7 @@ describe('FirebaseAnalytics instance tests', () => {
       gtagStub.reset();
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
-      stubFetch(200, { measurementId: analyticsId });
+      stubFetch(200, { measurementId: fakeMeasurementId });
       analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
@@ -194,7 +194,7 @@ describe('FirebaseAnalytics instance tests', () => {
       expect(gtagStub).to.have.been.calledWith('js');
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.CONFIG,
-        analyticsId,
+        fakeMeasurementId,
         {
           'firebase_id': 'fid-1234',
           origin: 'firebase',
@@ -231,7 +231,7 @@ describe('FirebaseAnalytics instance tests', () => {
     it('Adds the script tag to the page', async () => {
       stubFetch(200, {});
       const { initializationPromisesMap } = getGlobalVars();
-      await initializationPromisesMap[analyticsId];
+      await initializationPromisesMap[fakeMeasurementId];
       expect(findGtagScriptOnPage()).to.not.be.null;
       expect(typeof window['gtag']).to.equal('function');
       expect(Array.isArray(window['dataLayer'])).to.be.true;

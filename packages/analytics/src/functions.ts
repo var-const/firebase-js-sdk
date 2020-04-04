@@ -37,11 +37,12 @@ export function logEvent(
   eventName: string,
   eventParams?: EventParams,
   options?: AnalyticsCallOptions
-): void {
+): Promise<void> {
   if (options && options.global) {
     gtagFunction(GtagCommand.EVENT, eventName, eventParams || {});
+    return Promise.resolve();
   } else {
-    initializationPromise
+    return initializationPromise
       .then(measurementId => {
         const params: EventParams | ControlParams = {
           ...eventParams,
@@ -67,11 +68,12 @@ export function setCurrentScreen(
   initializationPromise: Promise<string>,
   screenName: string | null,
   options?: AnalyticsCallOptions
-): void {
+): Promise<void> {
   if (options && options.global) {
     gtagFunction(GtagCommand.SET, { 'screen_name': screenName });
+    return Promise.resolve();
   } else {
-    initializationPromise
+    return initializationPromise
       .then(measurementId => {
         gtagFunction(GtagCommand.CONFIG, measurementId, {
           update: true,
@@ -93,11 +95,12 @@ export function setUserId(
   initializationPromise: Promise<string>,
   id: string | null,
   options?: AnalyticsCallOptions
-): void {
+): Promise<void> {
   if (options && options.global) {
     gtagFunction(GtagCommand.SET, { 'user_id': id });
+    return Promise.resolve();
   } else {
-    initializationPromise
+    return initializationPromise
       .then(measurementId => {
         gtagFunction(GtagCommand.CONFIG, measurementId, {
           update: true,
@@ -119,7 +122,7 @@ export function setUserProperties(
   initializationPromise: Promise<string>,
   properties: CustomParams,
   options?: AnalyticsCallOptions
-): void {
+): Promise<void> {
   if (options && options.global) {
     const flatProperties: { [key: string]: unknown } = {};
     for (const key of Object.keys(properties)) {
@@ -127,8 +130,9 @@ export function setUserProperties(
       flatProperties[`user_properties.${key}`] = properties[key];
     }
     gtagFunction(GtagCommand.SET, flatProperties);
+    return Promise.resolve();
   } else {
-    initializationPromise
+    return initializationPromise
       .then(measurementId => {
         gtagFunction(GtagCommand.CONFIG, measurementId, {
           update: true,
@@ -147,8 +151,8 @@ export function setUserProperties(
 export function setAnalyticsCollectionEnabled(
   initializationPromise: Promise<string>,
   enabled: boolean
-): void {
-  initializationPromise
+): Promise<void> {
+  return initializationPromise
     .then(measurementId => {
       window[`ga-disable-${measurementId}`] = !enabled;
     })
