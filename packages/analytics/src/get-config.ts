@@ -20,29 +20,19 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { DynamicConfig } from '@firebase/analytics-types';
+import { DynamicConfig, ThrottleMetadata } from '@firebase/analytics-types';
 import { FirebaseError } from '@firebase/util';
 import { calculateBackoffMillis } from './exponential_backoff';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
+import { DYNAMIC_CONFIG_URL, FETCH_TIMEOUT_MILLIS } from './constants';
 import { logger } from './logger';
-
-/**
- * Encapsulates metadata concerning throttled fetch requests.
- */
-export interface ThrottleMetadata {
-  // The number of times fetch has backed off. Used for resuming backoff after a timeout.
-  backoffCount: number;
-  // The Unix timestamp in milliseconds when callers can retry a request.
-  throttleEndTimeMillis: number;
-}
-
-const FETCH_TIMEOUT_MILLIS = 60 * 1000;
-
-const DYNAMIC_CONFIG_URL =
-  'https://firebase.googleapis.com/v1alpha/projects/-/apps/{app-id}/webConfig';
 
 const appThrottleMetadata: { [appId: string]: ThrottleMetadata } = {};
 
+/**
+ * Set GET request headers.
+ * @param apiKey App API key.
+ */
 function getHeaders(apiKey: string): Headers {
   return new Headers({
     Accept: 'application/json',
@@ -183,7 +173,7 @@ async function attemptFetchDynamicConfigWithRetry(
  *
  * <p>Visible for testing.
  */
-export function setAbortableTimeout(
+function setAbortableTimeout(
   signal: AnalyticsAbortSignal,
   throttleEndTimeMillis: number
 ): Promise<void> {

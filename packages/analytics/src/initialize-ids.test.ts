@@ -30,7 +30,7 @@ const mockFid = 'fid-1234-zyxw';
 const fakeAppParams = { appId: 'abcdefgh12345:23405', apiKey: 'AAbbCCdd12345' };
 
 describe('FirebaseAnalytics methods', () => {
-  it('initializeIds gets FID from installations and calls gtag config with it', async () => {
+  it('initializeIds gets FID and measurement ID and calls gtag config with them', async () => {
     const gtagStub: SinonStub = stub();
     const fetchStub = stub(window, 'fetch');
     const mockResponse = new window.Response(

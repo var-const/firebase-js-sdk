@@ -87,22 +87,6 @@ export interface SettingsOptions {
 }
 
 /**
- * Dynamic configuration fetched from server.
- * See https://firebase.google.com/docs/projects/api/reference/rest/v1beta1/projects.webApps/getConfig
- */
-interface DynamicConfig {
-  projectId: string;
-  appId: string;
-  databaseURL: string;
-  storageBucket: string;
-  locationId: string;
-  apiKey: string;
-  authDomain: string;
-  messagingSenderId: string;
-  measurementId: string;
-}
-
-/**
  * Standard `gtag` function provided by gtag.js.
  */
 export interface Gtag {
@@ -249,6 +233,32 @@ export interface Promotion {
   creative_slot?: string;
   id?: string;
   name?: string;
+}
+
+/**
+ * Dynamic configuration fetched from server.
+ * See https://firebase.google.com/docs/projects/api/reference/rest/v1beta1/projects.webApps/getConfig
+ */
+interface DynamicConfig {
+  projectId: string;
+  appId: string;
+  databaseURL: string;
+  storageBucket: string;
+  locationId: string;
+  apiKey: string;
+  authDomain: string;
+  messagingSenderId: string;
+  measurementId: string;
+}
+
+/**
+ * Encapsulates metadata concerning throttled fetch requests.
+ */
+export interface ThrottleMetadata {
+  // The number of times fetch has backed off. Used for resuming backoff after a timeout.
+  backoffCount: number;
+  // The Unix timestamp in milliseconds when callers can retry a request.
+  throttleEndTimeMillis: number;
 }
 
 declare module '@firebase/component' {
