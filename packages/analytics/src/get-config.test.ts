@@ -131,13 +131,19 @@ describe('Dynamic Config Fetch Functions', () => {
         });
         fetchStub.onCall(index).resolves(failResponse);
       });
-      const successResponse = new window.Response(JSON.stringify(successObject), {
-        status: 200
-      });
+      const successResponse = new window.Response(
+        JSON.stringify(successObject),
+        {
+          status: 200
+        }
+      );
       fetchStub.onCall(retriableStatuses.length).resolves(successResponse);
 
       const app = getFakeApp(fakeAppParams);
-      const config: DynamicConfig = await fetchDynamicConfigWithRetry(app, fakeRetryData);
+      const config: DynamicConfig = await fetchDynamicConfigWithRetry(
+        app,
+        fakeRetryData
+      );
 
       // Verify retryData.setThrottleMetadata() was called on each retry.
       for (let i = 0; i < retriableStatuses.length; i++) {

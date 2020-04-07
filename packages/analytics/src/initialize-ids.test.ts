@@ -49,7 +49,7 @@ function stubFetch(): void {
 describe('initializeIds()', () => {
   const gtagStub: SinonStub = stub();
   const dynamicPromisesList: Array<Promise<DynamicConfig>> = [];
-  const measurementIdToAppId: { [key:string]: string} = {};
+  const measurementIdToAppId: { [key: string]: string } = {};
   let app: FirebaseApp;
   let installations: FirebaseInstallations;
   let fidDeferred: Deferred<string>;
@@ -63,7 +63,13 @@ describe('initializeIds()', () => {
   });
   it('gets FID and measurement ID and calls gtag config with them', async () => {
     stubFetch();
-    await initializeIds(app, dynamicPromisesList, measurementIdToAppId, installations, gtagStub);
+    await initializeIds(
+      app,
+      dynamicPromisesList,
+      measurementIdToAppId,
+      installations,
+      gtagStub
+    );
     expect(gtagStub).to.be.calledWith(GtagCommand.CONFIG, fakeMeasurementId, {
       'firebase_id': fakeFid,
       'origin': 'firebase',
@@ -72,14 +78,26 @@ describe('initializeIds()', () => {
   });
   it('puts dynamic fetch promise into dynamic promises list', async () => {
     stubFetch();
-    await initializeIds(app, dynamicPromisesList, measurementIdToAppId, installations, gtagStub);
+    await initializeIds(
+      app,
+      dynamicPromisesList,
+      measurementIdToAppId,
+      installations,
+      gtagStub
+    );
     const dynamicPromiseResult = await dynamicPromisesList[0];
     expect(dynamicPromiseResult.measurementId).to.equal(fakeMeasurementId);
     expect(dynamicPromiseResult.appId).to.equal(fakeAppId);
   });
   it('puts dynamically fetched measurementId into lookup table', async () => {
     stubFetch();
-    await initializeIds(app, dynamicPromisesList, measurementIdToAppId, installations, gtagStub);
+    await initializeIds(
+      app,
+      dynamicPromisesList,
+      measurementIdToAppId,
+      installations,
+      gtagStub
+    );
     expect(measurementIdToAppId[fakeMeasurementId]).to.equal(fakeAppId);
   });
 });

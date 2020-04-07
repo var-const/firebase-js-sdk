@@ -462,8 +462,8 @@ describe('Gtag wrapping functions', () => {
       expect(existingGtagStub).to.not.be.called;
 
       initPromise1.resolve(fakeMeasurementId);
-        await Promise.all(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
-        expect(existingGtagStub).to.not.be.called;
+      await Promise.all(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
+      expect(existingGtagStub).to.not.be.called;
 
       await Promise.all([initPromise1]); // Wait for resolution of Promise.all()
 
@@ -482,8 +482,8 @@ describe('Gtag wrapping functions', () => {
       (window['gtag'] as Gtag)(GtagCommand.CONFIG, fakeMeasurementId, {
         'transaction_id': 'abcd123'
       });
-        await Promise.all(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
-        expect(existingGtagStub).to.not.be.called;
+      await Promise.all(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
+      expect(existingGtagStub).to.not.be.called;
       await Promise.resolve(); // Config call is always chained onto initialization promise list, even if empty.
       expect(existingGtagStub).to.be.calledWith(
         GtagCommand.CONFIG,

@@ -31,8 +31,9 @@ import { logger } from './logger';
  * Stubbable retry data storage class.
  */
 class RetryData {
-  constructor(public throttleMetadata: { [appId: string]: ThrottleMetadata } = {}) {
-  }
+  constructor(
+    public throttleMetadata: { [appId: string]: ThrottleMetadata } = {}
+  ) {}
 
   getThrottleMetadata(appId: string): ThrottleMetadata {
     return this.throttleMetadata[appId];
@@ -122,19 +123,29 @@ export async function fetchDynamicConfigWithRetry(
 ): Promise<DynamicConfig> {
   const { appId } = getAppFields(app);
 
-  const throttleMetadata: ThrottleMetadata = retryData.getThrottleMetadata(appId) || {
+  const throttleMetadata: ThrottleMetadata = retryData.getThrottleMetadata(
+    appId
+  ) || {
     backoffCount: 0,
     throttleEndTimeMillis: Date.now()
   };
 
   const signal = new AnalyticsAbortSignal();
 
-  setTimeout(async () => {
-    // Note a very low delay, eg < 10ms, can elapse before listeners are initialized.
-    signal.abort();
-  }, timeoutMillis !== undefined ? timeoutMillis : FETCH_TIMEOUT_MILLIS);
+  setTimeout(
+    async () => {
+      // Note a very low delay, eg < 10ms, can elapse before listeners are initialized.
+      signal.abort();
+    },
+    timeoutMillis !== undefined ? timeoutMillis : FETCH_TIMEOUT_MILLIS
+  );
 
-  return attemptFetchDynamicConfigWithRetry(app, throttleMetadata, signal, retryData);
+  return attemptFetchDynamicConfigWithRetry(
+    app,
+    throttleMetadata,
+    signal,
+    retryData
+  );
 }
 
 /**
@@ -180,7 +191,12 @@ async function attemptFetchDynamicConfigWithRetry(
     retryData.setThrottleMetadata(appId, throttleMetadata);
     logger.debug(`Calling attemptFetch again in ${backoffMillis} millis`);
 
-    return attemptFetchDynamicConfigWithRetry(app, throttleMetadata, signal, retryData);
+    return attemptFetchDynamicConfigWithRetry(
+      app,
+      throttleMetadata,
+      signal,
+      retryData
+    );
   }
 }
 
