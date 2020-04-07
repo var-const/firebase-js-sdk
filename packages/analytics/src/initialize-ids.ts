@@ -45,7 +45,9 @@ export async function initializeIds(
   const dynamicConfigPromise = fetchDynamicConfigWithRetry(app);
   // Once fetched, map measurementIds to appId, for ease of lookup in wrapped gtag function.
   dynamicConfigPromise
-    .then(config => (measurementIdToAppId[config.measurementId] = config.appId))
+    .then(config => {
+      measurementIdToAppId[config.measurementId] = config.appId;
+    })
     .catch(e => logger.error(e));
   // Add to list to track state of all dynamic config promises.
   dynamicConfigPromisesList.push(dynamicConfigPromise);

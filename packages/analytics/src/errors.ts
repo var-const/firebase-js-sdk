@@ -16,10 +16,8 @@
  */
 
 import { ErrorFactory, ErrorMap } from '@firebase/util';
-import { ANALYTICS_ID_FIELD } from './constants';
 
 export const enum AnalyticsError {
-  NO_GA_ID = 'no-ga-id',
   ALREADY_EXISTS = 'already-exists',
   ALREADY_INITIALIZED = 'already-initialized',
   INTEROP_COMPONENT_REG_FAILED = 'interop-component-reg-failed',
@@ -30,10 +28,6 @@ export const enum AnalyticsError {
 }
 
 const ERRORS: ErrorMap<AnalyticsError> = {
-  [AnalyticsError.NO_GA_ID]:
-    `"${ANALYTICS_ID_FIELD}" field is empty in ` +
-    'Firebase config. Firebase Analytics ' +
-    'requires this field to contain a valid measurement ID.',
   [AnalyticsError.ALREADY_EXISTS]:
     'A Firebase Analytics instance with the appId ${id} ' +
     ' already exists. ' +
@@ -49,7 +43,7 @@ const ERRORS: ErrorMap<AnalyticsError> = {
     ' Configure timeout using "fetchTimeoutMillis" SDK setting.' +
     ' Unix timestamp in milliseconds when fetch request throttling ends: {$throttleEndTimeMillis}.',
   [AnalyticsError.CONFIG_FETCH_FAILED]:
-    'Dynamic config fetch failed: {$statusCode} {$responseMessage}',
+    'Dynamic config fetch failed: [{$httpStatus}] {$responseMessage}',
   [AnalyticsError.NO_API_KEY]:
     '"apiKey" field is empty in Firebase config. Firebase Analytics requires this field to' +
     'contain a valid API key.',
@@ -63,7 +57,7 @@ interface ErrorParams {
   [AnalyticsError.INTEROP_COMPONENT_REG_FAILED]: { reason: Error };
   [AnalyticsError.FETCH_THROTTLE]: { throttleEndTimeMillis: number };
   [AnalyticsError.CONFIG_FETCH_FAILED]: {
-    statusCode: number;
+    httpStatus: number;
     responseMessage: string;
   };
 }

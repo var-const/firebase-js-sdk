@@ -24,30 +24,62 @@ import {
   getFakeInstallations
 } from '../testing/get-fake-firebase-services';
 import { GtagCommand } from './constants';
+import { DynamicConfig } from '@firebase/analytics-types';
+import { FirebaseInstallations } from '@firebase/installations-types';
+import { FirebaseApp } from '@firebase/app-types';
+import { Deferred } from '@firebase/util';
 
-const mockAnalyticsId = 'abcd-efgh-ijkl';
-const mockFid = 'fid-1234-zyxw';
-const fakeAppParams = { appId: 'abcdefgh12345:23405', apiKey: 'AAbbCCdd12345' };
+const fakeMeasurementId = 'abcd-efgh-ijkl';
+const fakeFid = 'fid-1234-zyxw';
+const fakeAppId = 'abcdefgh12345:23405';
+const fakeAppParams = { appId: fakeAppId, apiKey: 'AAbbCCdd12345' };
+let fetchStub: SinonStub;
 
-describe('FirebaseAnalytics methods', () => {
-  it('initializeIds gets FID and measurement ID and calls gtag config with them', async () => {
-    const gtagStub: SinonStub = stub();
-    const fetchStub = stub(window, 'fetch');
-    const mockResponse = new window.Response(
-      JSON.stringify({ measurementId: mockAnalyticsId }),
-      {
-        status: 200
-      }
-    );
-    fetchStub.returns(Promise.resolve(mockResponse));
-    const app = getFakeApp(fakeAppParams);
-    const installations = getFakeInstallations(mockFid);
-    await initializeIds(app, [], {}, installations, gtagStub);
-    expect(gtagStub).to.be.calledWith(GtagCommand.CONFIG, mockAnalyticsId, {
-      'firebase_id': mockFid,
+function stubFetch(): void {
+  fetchStub = stub(window, 'fetch');
+  const mockResponse = new window.Response(
+    JSON.stringify({ measurementId: fakeMeasurementId, appId: fakeAppId }),
+    {
+      status: 200
+    }
+  );
+  fetchStub.returns(Promise.resolve(mockResponse));
+}
+
+describe('initializeIds()', () => {
+  const gtagStub: SinonStub = stub();
+  const dynamicPromisesList: Array<Promise<DynamicConfig>> = [];
+  const measurementIdToAppId: { [key:string]: string} = {};
+  let app: FirebaseApp;
+  let installations: FirebaseInstallations;
+  let fidDeferred: Deferred<string>;
+  beforeEach(() => {
+    fidDeferred = new Deferred<string>();
+    app = getFakeApp(fakeAppParams);
+    installations = getFakeInstallations(fakeFid, fidDeferred.resolve);
+  });
+  afterEach(() => {
+    fetchStub.restore();
+  });
+  it('gets FID and measurement ID and calls gtag config with them', async () => {
+    stubFetch();
+    await initializeIds(app, dynamicPromisesList, measurementIdToAppId, installations, gtagStub);
+    expect(gtagStub).to.be.calledWith(GtagCommand.CONFIG, fakeMeasurementId, {
+      'firebase_id': fakeFid,
       'origin': 'firebase',
       update: true
     });
-    fetchStub.restore();
+  });
+  it('puts dynamic fetch promise into dynamic promises list', async () => {
+    stubFetch();
+    await initializeIds(app, dynamicPromisesList, measurementIdToAppId, installations, gtagStub);
+    const dynamicPromiseResult = await dynamicPromisesList[0];
+    expect(dynamicPromiseResult.measurementId).to.equal(fakeMeasurementId);
+    expect(dynamicPromiseResult.appId).to.equal(fakeAppId);
+  });
+  it('puts dynamically fetched measurementId into lookup table', async () => {
+    stubFetch();
+    await initializeIds(app, dynamicPromisesList, measurementIdToAppId, installations, gtagStub);
+    expect(measurementIdToAppId[fakeMeasurementId]).to.equal(fakeAppId);
   });
 });

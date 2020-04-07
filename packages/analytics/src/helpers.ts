@@ -71,14 +71,14 @@ function wrapGtag(
     measurementId: string,
     gtagParams?: ControlParams & EventParams & CustomParams
   ): Promise<void> {
-    // If config is fetched, we know the appId and can use it to look up what FID promise we
+    // If config is already fetched, we know the appId and can use it to look up what FID promise we
     /// are waiting for, and wait only on that one.
     const correspondingAppId = measurementIdToAppId[measurementId as string];
     try {
       if (correspondingAppId) {
         await initializationPromisesMap[correspondingAppId];
       } else {
-        // If config is not fetched, wait for all configs (we don't know which one we need) and
+        // If config is not fetched yet, wait for all configs (we don't know which one we need) and
         // find the appId (if any) corresponding to this measurementId. If there is one, wait on
         // that appId's initialization promise. If there is none, promise resolves and gtag
         // call goes through.
@@ -112,7 +112,7 @@ function wrapGtag(
       let initializationPromisesToWaitFor: Array<Promise<string>> = [];
 
       // If there's a 'send_to' param, check if any ID specified matches
-      // a FID we have begun a fetch on.
+      // an initializeIds() promise we are waiting for.
       if (gtagParams && gtagParams['send_to']) {
         let gaSendToList: string | string[] = gtagParams['send_to'];
         // Make it an array if is isn't, so it can be dealt with the same way.
@@ -125,18 +125,18 @@ function wrapGtag(
           dynamicConfigPromisesList
         );
         for (const sendToId of gaSendToList) {
+          // Any fetched dynamic measurement ID that matches this 'send_to' ID
           const foundConfig = dynamicConfigResults.find(
             config => config.measurementId === sendToId
           );
           const initializationPromise =
             foundConfig && initializationPromisesMap[foundConfig.appId];
-          // Groups will not be in the map.
           if (initializationPromise) {
             initializationPromisesToWaitFor.push(initializationPromise);
           } else {
-            // There is an item in 'send_to' that is not associated
-            // directly with an FID, possibly a group.  Empty this array
-            // and let it get populated below.
+            // Found an item in 'send_to' that is not associated
+            // directly with an FID, possibly a group.  Empty this array,
+            // exit the loop early, and let it get populated below.
             initializationPromisesToWaitFor = [];
             break;
           }

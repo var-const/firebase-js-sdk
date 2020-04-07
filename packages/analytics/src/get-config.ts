@@ -27,7 +27,27 @@ import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { DYNAMIC_CONFIG_URL, FETCH_TIMEOUT_MILLIS } from './constants';
 import { logger } from './logger';
 
-const appThrottleMetadata: { [appId: string]: ThrottleMetadata } = {};
+/**
+ * Stubbable retry data storage class.
+ */
+class RetryData {
+  constructor(public throttleMetadata: { [appId: string]: ThrottleMetadata } = {}) {
+  }
+
+  getThrottleMetadata(appId: string): ThrottleMetadata {
+    return this.throttleMetadata[appId];
+  }
+
+  setThrottleMetadata(appId: string, metadata: ThrottleMetadata): void {
+    this.throttleMetadata[appId] = metadata;
+  }
+
+  deleteThrottleMetadata(appId: string): void {
+    delete this.throttleMetadata[appId];
+  }
+}
+
+const defaultRetryData = new RetryData();
 
 /**
  * Set GET request headers.
@@ -84,7 +104,7 @@ export async function fetchDynamicConfig(
       }
     } catch (ignored) {}
     throw ERROR_FACTORY.create(AnalyticsError.CONFIG_FETCH_FAILED, {
-      statusCode: response.status,
+      httpStatus: response.status,
       responseMessage: errorMessage
     });
   }
@@ -96,11 +116,13 @@ export async function fetchDynamicConfig(
  * @param app Firebase app to fetch config for.
  */
 export async function fetchDynamicConfigWithRetry(
-  app: FirebaseApp
+  app: FirebaseApp,
+  retryData: RetryData = defaultRetryData, // for testing
+  timeoutMillis?: number // for testing
 ): Promise<DynamicConfig> {
   const { appId } = getAppFields(app);
 
-  const throttleMetadata: ThrottleMetadata = appThrottleMetadata[appId] || {
+  const throttleMetadata: ThrottleMetadata = retryData.getThrottleMetadata(appId) || {
     backoffCount: 0,
     throttleEndTimeMillis: Date.now()
   };
@@ -110,9 +132,9 @@ export async function fetchDynamicConfigWithRetry(
   setTimeout(async () => {
     // Note a very low delay, eg < 10ms, can elapse before listeners are initialized.
     signal.abort();
-  }, FETCH_TIMEOUT_MILLIS);
+  }, timeoutMillis !== undefined ? timeoutMillis : FETCH_TIMEOUT_MILLIS);
 
-  return attemptFetchDynamicConfigWithRetry(app, throttleMetadata, signal);
+  return attemptFetchDynamicConfigWithRetry(app, throttleMetadata, signal, retryData);
 }
 
 /**
@@ -124,7 +146,8 @@ export async function fetchDynamicConfigWithRetry(
 async function attemptFetchDynamicConfigWithRetry(
   app: FirebaseApp,
   { throttleEndTimeMillis, backoffCount }: ThrottleMetadata,
-  signal: AnalyticsAbortSignal
+  signal: AnalyticsAbortSignal,
+  retryData: RetryData = defaultRetryData // for testing
 ): Promise<DynamicConfig> {
   const { appId } = getAppFields(app);
   // Starts with a (potentially zero) timeout to support resumption from stored state.
@@ -136,12 +159,12 @@ async function attemptFetchDynamicConfigWithRetry(
     const response = await fetchDynamicConfig(app);
 
     // Note the SDK only clears throttle state if response is success or non-retriable.
-    delete appThrottleMetadata[appId];
+    retryData.deleteThrottleMetadata(appId);
 
     return response;
   } catch (e) {
     if (!isRetriableError(e)) {
-      delete appThrottleMetadata[appId];
+      retryData.deleteThrottleMetadata(appId);
       throw e;
     }
 
@@ -154,10 +177,10 @@ async function attemptFetchDynamicConfigWithRetry(
     };
 
     // Persists state.
-    appThrottleMetadata[appId] = throttleMetadata;
+    retryData.setThrottleMetadata(appId, throttleMetadata);
     logger.debug(`Calling attemptFetch again in ${backoffMillis} millis`);
 
-    return attemptFetchDynamicConfigWithRetry(app, throttleMetadata, signal);
+    return attemptFetchDynamicConfigWithRetry(app, throttleMetadata, signal, retryData);
   }
 }
 
@@ -186,7 +209,6 @@ function setAbortableTimeout(
     // Adds listener, rather than sets onabort, because signal is a shared object.
     signal.addEventListener(() => {
       clearTimeout(timeout);
-
       // If the request completes before this timeout, the rejection has no effect.
       reject(
         ERROR_FACTORY.create(AnalyticsError.FETCH_THROTTLE, {

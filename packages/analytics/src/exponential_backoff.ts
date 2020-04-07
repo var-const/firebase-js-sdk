@@ -17,6 +17,7 @@
 
 /** @fileoverview
  * Copied from remote-config.
+ * TODO: Created shared utils to use between both packages.
  */
 
 /**

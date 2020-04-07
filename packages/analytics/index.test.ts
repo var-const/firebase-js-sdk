@@ -104,7 +104,7 @@ describe('FirebaseAnalytics instance tests', () => {
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
       stubFetch(200, { measurementId: fakeMeasurementId });
-      analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
+      await analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
       const { dynamicConfigPromisesList } = getGlobalVars();
@@ -179,7 +179,7 @@ describe('FirebaseAnalytics instance tests', () => {
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
       stubFetch(200, { measurementId: fakeMeasurementId });
-      analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
+      await analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
       const { dynamicConfigPromisesList } = getGlobalVars();
@@ -224,6 +224,7 @@ describe('FirebaseAnalytics instance tests', () => {
       delete window['gtag'];
       delete window['dataLayer'];
       removeGtagScript();
+      fetchStub.restore();
     });
     it('Adds the script tag to the page', async () => {
       stubFetch(200, {});
