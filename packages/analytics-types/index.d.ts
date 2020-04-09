@@ -53,10 +53,7 @@ export interface FirebaseAnalytics {
   /**
    * Use gtag 'config' command to set 'screen_name'.
    */
-  setCurrentScreen(
-    screenName: string,
-    options?: AnalyticsCallOptions
-  ): void;
+  setCurrentScreen(screenName: string, options?: AnalyticsCallOptions): void;
 
   /**
    * Use gtag 'config' command to set 'user_id'.

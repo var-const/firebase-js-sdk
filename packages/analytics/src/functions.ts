@@ -41,15 +41,14 @@ export function logEvent(
     gtagFunction(GtagCommand.EVENT, eventName, eventParams || {});
     return Promise.resolve();
   } else {
-    return initializationPromise
-      .then(measurementId => {
-        const params: EventParams | ControlParams = {
-          ...eventParams,
-          'send_to': measurementId
-        };
-        // Workaround for http://b/141370449 - third argument cannot be undefined.
-        gtagFunction(GtagCommand.EVENT, eventName, params || {});
-      });
+    return initializationPromise.then(measurementId => {
+      const params: EventParams | ControlParams = {
+        ...eventParams,
+        'send_to': measurementId
+      };
+      // Workaround for http://b/141370449 - third argument cannot be undefined.
+      gtagFunction(GtagCommand.EVENT, eventName, params || {});
+    });
   }
 }
 
@@ -71,13 +70,12 @@ export function setCurrentScreen(
     gtagFunction(GtagCommand.SET, { 'screen_name': screenName });
     return Promise.resolve();
   } else {
-    return initializationPromise
-      .then(measurementId => {
-        gtagFunction(GtagCommand.CONFIG, measurementId, {
-          update: true,
-          'screen_name': screenName
-        });
+    return initializationPromise.then(measurementId => {
+      gtagFunction(GtagCommand.CONFIG, measurementId, {
+        update: true,
+        'screen_name': screenName
       });
+    });
   }
 }
 
@@ -97,13 +95,12 @@ export function setUserId(
     gtagFunction(GtagCommand.SET, { 'user_id': id });
     return Promise.resolve();
   } else {
-    return initializationPromise
-      .then(measurementId => {
-        gtagFunction(GtagCommand.CONFIG, measurementId, {
-          update: true,
-          'user_id': id
-        });
+    return initializationPromise.then(measurementId => {
+      gtagFunction(GtagCommand.CONFIG, measurementId, {
+        update: true,
+        'user_id': id
       });
+    });
   }
 }
 
@@ -128,13 +125,12 @@ export function setUserProperties(
     gtagFunction(GtagCommand.SET, flatProperties);
     return Promise.resolve();
   } else {
-    return initializationPromise
-      .then(measurementId => {
-        gtagFunction(GtagCommand.CONFIG, measurementId, {
-          update: true,
-          'user_properties': properties
-        });
+    return initializationPromise.then(measurementId => {
+      gtagFunction(GtagCommand.CONFIG, measurementId, {
+        update: true,
+        'user_properties': properties
       });
+    });
   }
 }
 
@@ -147,8 +143,7 @@ export function setAnalyticsCollectionEnabled(
   initializationPromise: Promise<string>,
   enabled: boolean
 ): Promise<void> {
-  return initializationPromise
-    .then(measurementId => {
-      window[`ga-disable-${measurementId}`] = !enabled;
-    });
+  return initializationPromise.then(measurementId => {
+    window[`ga-disable-${measurementId}`] = !enabled;
+  });
 }
