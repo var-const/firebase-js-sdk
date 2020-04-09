@@ -38,6 +38,7 @@ import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { initializeIds } from './initialize-ids';
+import { logger } from './logger';
 
 /**
  * Maps appId to full initialization promise.
@@ -180,37 +181,47 @@ export function factory(
 
   const analyticsInstance: FirebaseAnalytics = {
     app,
-    logEvent: (eventName, eventParams, options) =>
+    // Public methods return void for API simplicity and to better match gtag,
+    // while internal implementations return promises.
+    logEvent: (eventName, eventParams, options) => {
       logEvent(
         wrappedGtagFunction,
         initializationPromisesMap[appId],
         eventName,
         eventParams,
         options
-      ),
-    setCurrentScreen: (screenName, options) =>
+      ).catch(e => logger.error(e));
+    },
+    setCurrentScreen: (screenName, options) => {
       setCurrentScreen(
         wrappedGtagFunction,
         initializationPromisesMap[appId],
         screenName,
         options
-      ),
-    setUserId: (id, options) =>
+      ).catch(e => logger.error(e));
+    },
+    setUserId: (id, options) => {
       setUserId(
         wrappedGtagFunction,
         initializationPromisesMap[appId],
         id,
         options
-      ),
-    setUserProperties: (properties, options) =>
+      ).catch(e => logger.error(e));
+    },
+    setUserProperties: (properties, options) => {
       setUserProperties(
         wrappedGtagFunction,
         initializationPromisesMap[appId],
         properties,
         options
-      ),
-    setAnalyticsCollectionEnabled: enabled =>
-      setAnalyticsCollectionEnabled(initializationPromisesMap[appId], enabled)
+      ).catch(e => logger.error(e));
+    },
+    setAnalyticsCollectionEnabled: enabled => {
+      setAnalyticsCollectionEnabled(
+        initializationPromisesMap[appId],
+        enabled
+      ).catch(e => logger.error(e));
+    }
   };
 
   return analyticsInstance;

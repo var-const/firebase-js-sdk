@@ -104,7 +104,7 @@ describe('FirebaseAnalytics instance tests', () => {
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
       stubFetch(200, { measurementId: fakeMeasurementId });
-      await analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
+      analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
       const { dynamicConfigPromisesList } = getGlobalVars();
@@ -179,7 +179,7 @@ describe('FirebaseAnalytics instance tests', () => {
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
       stubFetch(200, { measurementId: fakeMeasurementId });
-      await analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
+      analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
       const { dynamicConfigPromisesList } = getGlobalVars();

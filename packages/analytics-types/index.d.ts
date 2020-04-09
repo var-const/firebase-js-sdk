@@ -48,7 +48,7 @@ export interface FirebaseAnalytics {
     eventName: EventNameString,
     eventParams?: EventParams,
     options?: AnalyticsCallOptions
-  ): Promise<void>;
+  ): void;
 
   /**
    * Use gtag 'config' command to set 'screen_name'.
@@ -56,12 +56,12 @@ export interface FirebaseAnalytics {
   setCurrentScreen(
     screenName: string,
     options?: AnalyticsCallOptions
-  ): Promise<void>;
+  ): void;
 
   /**
    * Use gtag 'config' command to set 'user_id'.
    */
-  setUserId(id: string, options?: AnalyticsCallOptions): Promise<void>;
+  setUserId(id: string, options?: AnalyticsCallOptions): void;
 
   /**
    * Use gtag 'config' command to set all params specified.
@@ -69,13 +69,13 @@ export interface FirebaseAnalytics {
   setUserProperties(
     properties: { [key: string]: any },
     options?: AnalyticsCallOptions
-  ): Promise<void>;
+  ): void;
 
   /**
    * Sets whether analytics collection is enabled for this app on this device.
    * window['ga-disable-analyticsId'] = true;
    */
-  setAnalyticsCollectionEnabled(enabled: boolean): Promise<void>;
+  setAnalyticsCollectionEnabled(enabled: boolean): void;
 }
 
 /**

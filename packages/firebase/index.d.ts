@@ -4446,7 +4446,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4467,7 +4467,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4486,7 +4486,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4506,7 +4506,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4528,7 +4528,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4546,7 +4546,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4565,7 +4565,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4582,7 +4582,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4601,7 +4601,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4625,7 +4625,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4646,7 +4646,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4663,7 +4663,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4683,7 +4683,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4702,7 +4702,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4721,7 +4721,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4739,7 +4739,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4758,7 +4758,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4775,7 +4775,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4795,7 +4795,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4814,7 +4814,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4833,7 +4833,7 @@ declare namespace firebase.analytics {
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sends analytics event with given `eventParams`. This method
@@ -4847,7 +4847,7 @@ declare namespace firebase.analytics {
       eventName: CustomEventName<T>,
       eventParams?: { [key: string]: any },
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Use gtag 'config' command to set 'screen_name'.
@@ -4855,7 +4855,7 @@ declare namespace firebase.analytics {
     setCurrentScreen(
       screenName: string,
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Use gtag 'config' command to set 'user_id'.
@@ -4863,7 +4863,7 @@ declare namespace firebase.analytics {
     setUserId(
       id: string,
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Use gtag 'config' command to set all params specified.
@@ -4871,13 +4871,13 @@ declare namespace firebase.analytics {
     setUserProperties(
       properties: firebase.analytics.CustomParams,
       options?: firebase.analytics.AnalyticsCallOptions
-    ): Promise<void>;
+    ): void;
 
     /**
      * Sets whether analytics collection is enabled for this app on this device.
      * window['ga-disable-analyticsId'] = true;
      */
-    setAnalyticsCollectionEnabled(enabled: boolean): Promise<void>;
+    setAnalyticsCollectionEnabled(enabled: boolean): void;
   }
 
   export type CustomEventName<T> = T extends EventNameString ? never : T;

@@ -23,7 +23,6 @@ import {
   EventParams
 } from '@firebase/analytics-types';
 import { GtagCommand } from './constants';
-import { logger } from './logger';
 /**
  * Logs an analytics event through the Firebase SDK.
  *
@@ -50,8 +49,7 @@ export function logEvent(
         };
         // Workaround for http://b/141370449 - third argument cannot be undefined.
         gtagFunction(GtagCommand.EVENT, eventName, params || {});
-      })
-      .catch(e => logger.error(e));
+      });
   }
 }
 
@@ -79,8 +77,7 @@ export function setCurrentScreen(
           update: true,
           'screen_name': screenName
         });
-      })
-      .catch(e => logger.error(e));
+      });
   }
 }
 
@@ -106,8 +103,7 @@ export function setUserId(
           update: true,
           'user_id': id
         });
-      })
-      .catch(e => logger.error(e));
+      });
   }
 }
 
@@ -138,8 +134,7 @@ export function setUserProperties(
           update: true,
           'user_properties': properties
         });
-      })
-      .catch(e => logger.error(e));
+      });
   }
 }
 
@@ -155,6 +150,5 @@ export function setAnalyticsCollectionEnabled(
   return initializationPromise
     .then(measurementId => {
       window[`ga-disable-${measurementId}`] = !enabled;
-    })
-    .catch(e => logger.error(e));
+    });
 }
