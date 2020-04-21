@@ -42,6 +42,7 @@ export interface User extends UserInfo {
   tenantId: string | null;
   providerData: UserInfo[];
   metadata: UserMetadata;
+  isAnonymous: boolean;
 
   getIdToken(forceRefresh?: boolean): Promise<string>;
   getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
