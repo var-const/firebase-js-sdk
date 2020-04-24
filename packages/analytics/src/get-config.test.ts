@@ -59,12 +59,16 @@ describe('Dynamic Config Fetch Functions', () => {
         }
       });
       const app = getFakeApp(fakeAppParams);
-      await expect(fetchDynamicConfig(app)).to.be.rejectedWith(AnalyticsError.CONFIG_FETCH_FAILED);
+      await expect(fetchDynamicConfig(app)).to.be.rejectedWith(
+        AnalyticsError.CONFIG_FETCH_FAILED
+      );
     });
     it('throws error on failed response, includes server error message if provided', async () => {
       stubFetch(500, { error: { message: 'Oops' } });
       const app = getFakeApp(fakeAppParams);
-      await expect(fetchDynamicConfig(app)).to.be.rejectedWith(new RegExp(`Oops.+${AnalyticsError.CONFIG_FETCH_FAILED}`));
+      await expect(fetchDynamicConfig(app)).to.be.rejectedWith(
+        new RegExp(`Oops.+${AnalyticsError.CONFIG_FETCH_FAILED}`)
+      );
     });
   });
   describe('fetchDynamicConfigWithRetry()', () => {
@@ -86,7 +90,9 @@ describe('Dynamic Config Fetch Functions', () => {
         }
       });
       const app = getFakeApp(fakeAppParams);
-      await expect(fetchDynamicConfigWithRetry(app)).to.be.rejectedWith(AnalyticsError.CONFIG_FETCH_FAILED);
+      await expect(fetchDynamicConfigWithRetry(app)).to.be.rejectedWith(
+        AnalyticsError.CONFIG_FETCH_FAILED
+      );
     });
     it('retries on retriable error until success', async () => {
       // Configures Date.now() to advance clock from zero in 20ms increments, enabling
@@ -160,7 +166,9 @@ describe('Dynamic Config Fetch Functions', () => {
       const app = getFakeApp(fakeAppParams);
       // Set fetch timeout to 200 ms.
       const fetchPromise = fetchDynamicConfigWithRetry(app, fakeRetryData, 200);
-      await expect(fetchPromise).to.be.rejectedWith(AnalyticsError.FETCH_THROTTLE);
+      await expect(fetchPromise).to.be.rejectedWith(
+        AnalyticsError.FETCH_THROTTLE
+      );
       expect(fakeRetryData.setThrottleMetadata).to.be.called;
     });
   });
