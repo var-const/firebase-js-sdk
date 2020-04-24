@@ -21,7 +21,7 @@ import { User } from '../../model/user';
 import { PersistedBlob } from '../persistence';
 import { ProviderId } from '../providers';
 import { assert } from '../util/assert';
-import { reload } from './reload';
+import { reload, _reloadWithoutSaving } from './reload';
 import { StsTokenManager } from './token_manager';
 
 export interface UserParameters {
@@ -162,7 +162,7 @@ export class UserImpl implements User {
     });
 
     // Updates the user info and data and resolves with a user instance.
-    await user.reload();
+    await _reloadWithoutSaving(user);
     return user;
   }
 }
