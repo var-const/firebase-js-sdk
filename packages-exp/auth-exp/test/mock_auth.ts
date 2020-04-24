@@ -26,13 +26,17 @@ export const TEST_AUTH_DOMAIN = 'localhost';
 export const TEST_SCHEME = 'mock';
 export const TEST_KEY = 'test-api-key';
 
-export const mockAuth: Auth = new AuthImpl('test-app', {
-  apiKey: TEST_KEY,
-  authDomain: TEST_AUTH_DOMAIN,
-  apiHost: TEST_HOST,
-  apiScheme: TEST_SCHEME,
-  sdkClientVersion: 'testSDK/0.0.0'
-}, []);;
+export const mockAuth: Auth = new AuthImpl(
+  'test-app',
+  {
+    apiKey: TEST_KEY,
+    authDomain: TEST_AUTH_DOMAIN,
+    apiHost: TEST_HOST,
+    apiScheme: TEST_SCHEME,
+    sdkClientVersion: 'testSDK/0.0.0'
+  },
+  []
+);
 
 export function testUser(
   uid: string,
