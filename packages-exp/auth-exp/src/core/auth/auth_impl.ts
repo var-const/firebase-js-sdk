@@ -42,7 +42,7 @@ interface AsyncAction {
 export const DEFAULT_API_HOST = 'identitytoolkit.googleapis.com';
 export const DEFAULT_API_SCHEME = 'https';
 
-class AuthImpl implements Auth {
+export class AuthImpl implements Auth {
   currentUser: User | null = null;
   private operations = Promise.resolve();
   private persistenceManager?: PersistenceUserManager;

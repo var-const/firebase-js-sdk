@@ -16,35 +16,23 @@
  */
 
 import { StsTokenManager } from '../src/core/user/token_manager';
+import { AuthImpl } from '../src/core/auth/auth_impl';
 import { UserImpl } from '../src/core/user/user_impl';
 import { Auth } from '../src/model/auth';
 import { User } from '../src/model/user';
 
 export const TEST_HOST = 'localhost';
+export const TEST_AUTH_DOMAIN = 'localhost';
 export const TEST_SCHEME = 'mock';
 export const TEST_KEY = 'test-api-key';
 
-export const mockAuth: Auth = {
-  name: 'test-app',
-  config: {
-    apiKey: TEST_KEY,
-    apiHost: TEST_HOST,
-    apiScheme: TEST_SCHEME,
-    sdkClientVersion: 'testSDK/0.0.0'
-  },
-  _isInitialized: true,
-  currentUser: null,
-  async setPersistence() {},
-  async updateCurrentUser() {},
-  async signOut() {},
-  onAuthStateChanged() {
-    return () => {};
-  },
-  onIdTokenChange() {
-    return () => {};
-  },
-  _notifyStateListeners() {}
-};
+export const mockAuth: Auth = new AuthImpl('test-app', {
+  apiKey: TEST_KEY,
+  authDomain: TEST_AUTH_DOMAIN,
+  apiHost: TEST_HOST,
+  apiScheme: TEST_SCHEME,
+  sdkClientVersion: 'testSDK/0.0.0'
+}, []);;
 
 export function testUser(
   uid: string,
