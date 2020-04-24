@@ -21,8 +21,7 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import { DynamicConfig, ThrottleMetadata } from '@firebase/analytics-types';
-import { FirebaseError } from '@firebase/util';
-import { calculateBackoffMillis } from './exponential_backoff';
+import { FirebaseError, calculateBackoffMillis } from '@firebase/util';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { DYNAMIC_CONFIG_URL, FETCH_TIMEOUT_MILLIS } from './constants';
 import { logger } from './logger';

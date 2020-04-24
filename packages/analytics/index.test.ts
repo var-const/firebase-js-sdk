@@ -45,7 +45,7 @@ const customDataLayerName = 'customDataLayer';
 
 function stubFetch(status: number, body: object): void {
   fetchStub = stub(window, 'fetch');
-  const mockResponse = new window.Response(JSON.stringify(body), {
+  const mockResponse = new Response(JSON.stringify(body), {
     status
   });
   fetchStub.returns(Promise.resolve(mockResponse));

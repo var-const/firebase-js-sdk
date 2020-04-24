@@ -30,7 +30,7 @@ import { GtagCommand } from './constants';
  * @param eventName Google Analytics event name, choose from standard list or use a custom string.
  * @param eventParams Analytics event parameters.
  */
-export function logEvent(
+export async function logEvent(
   gtagFunction: Gtag,
   initializationPromise: Promise<string>,
   eventName: string,
@@ -39,20 +39,17 @@ export function logEvent(
 ): Promise<void> {
   if (options && options.global) {
     gtagFunction(GtagCommand.EVENT, eventName, eventParams || {});
-    return Promise.resolve();
+    return;
   } else {
-    return initializationPromise.then(measurementId => {
-      const params: EventParams | ControlParams = {
-        ...eventParams,
-        'send_to': measurementId
-      };
-      // Workaround for http://b/141370449 - third argument cannot be undefined.
-      gtagFunction(GtagCommand.EVENT, eventName, params || {});
-    });
+    const measurementId = await initializationPromise;
+    const params: EventParams | ControlParams = {
+      ...eventParams,
+      'send_to': measurementId
+    };
+    // Workaround for http://b/141370449 - third argument cannot be undefined.
+    gtagFunction(GtagCommand.EVENT, eventName, params || {});
   }
 }
-
-// TODO: Brad is going to add `screen_name` to GA Gold config parameter schema
 
 /**
  * Set screen_name parameter for this Google Analytics ID.

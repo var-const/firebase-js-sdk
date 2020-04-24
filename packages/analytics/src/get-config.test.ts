@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,25 +59,12 @@ describe('Dynamic Config Fetch Functions', () => {
         }
       });
       const app = getFakeApp(fakeAppParams);
-      let error;
-      try {
-        await fetchDynamicConfig(app);
-      } catch (e) {
-        error = e;
-      }
-      expect(error.message).to.include(AnalyticsError.CONFIG_FETCH_FAILED);
+      await expect(fetchDynamicConfig(app)).to.be.rejectedWith(AnalyticsError.CONFIG_FETCH_FAILED);
     });
     it('throws error on failed response, includes server error message if provided', async () => {
       stubFetch(500, { error: { message: 'Oops' } });
       const app = getFakeApp(fakeAppParams);
-      let error;
-      try {
-        await fetchDynamicConfig(app);
-      } catch (e) {
-        error = e;
-      }
-      expect(error.message).to.include('Oops');
-      expect(error.message).to.include(AnalyticsError.CONFIG_FETCH_FAILED);
+      await expect(fetchDynamicConfig(app)).to.be.rejectedWith(new RegExp(`Oops.+${AnalyticsError.CONFIG_FETCH_FAILED}`));
     });
   });
   describe('fetchDynamicConfigWithRetry()', () => {
@@ -99,13 +86,7 @@ describe('Dynamic Config Fetch Functions', () => {
         }
       });
       const app = getFakeApp(fakeAppParams);
-      let error;
-      try {
-        await fetchDynamicConfigWithRetry(app);
-      } catch (e) {
-        error = e;
-      }
-      expect(error.message).to.include(AnalyticsError.CONFIG_FETCH_FAILED);
+      await expect(fetchDynamicConfigWithRetry(app)).to.be.rejectedWith(AnalyticsError.CONFIG_FETCH_FAILED);
     });
     it('retries on retriable error until success', async () => {
       // Configures Date.now() to advance clock from zero in 20ms increments, enabling
@@ -177,16 +158,10 @@ describe('Dynamic Config Fetch Functions', () => {
       stubFetch(500, {});
 
       const app = getFakeApp(fakeAppParams);
-      let error;
       // Set fetch timeout to 200 ms.
       const fetchPromise = fetchDynamicConfigWithRetry(app, fakeRetryData, 200);
-      try {
-        await fetchPromise;
-      } catch (e) {
-        error = e;
-      }
+      await expect(fetchPromise).to.be.rejectedWith(AnalyticsError.FETCH_THROTTLE);
       expect(fakeRetryData.setThrottleMetadata).to.be.called;
-      expect(error.message).to.include(AnalyticsError.FETCH_THROTTLE);
     });
   });
 });

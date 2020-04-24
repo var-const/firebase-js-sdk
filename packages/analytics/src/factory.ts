@@ -43,7 +43,9 @@ import { logger } from './logger';
 /**
  * Maps appId to full initialization promise.
  */
-let initializationPromisesMap: { [appId: string]: Promise<string> } = {};
+let initializationPromisesMap: {
+  [appId: string]: Promise<string>; // Promise contains measurement ID string.
+} = {};
 
 /**
  * List of dynamic config fetch promises.

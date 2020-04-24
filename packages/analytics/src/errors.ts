@@ -40,7 +40,6 @@ const ERRORS: ErrorMap<AnalyticsError> = {
     'Firebase Analytics Interop Component failed to instantiate',
   [AnalyticsError.FETCH_THROTTLE]:
     'The config fetch request timed out while in an exponential backoff state.' +
-    ' Configure timeout using "fetchTimeoutMillis" SDK setting.' +
     ' Unix timestamp in milliseconds when fetch request throttling ends: {$throttleEndTimeMillis}.',
   [AnalyticsError.CONFIG_FETCH_FAILED]:
     'Dynamic config fetch failed: [{$httpStatus}] {$responseMessage}',
