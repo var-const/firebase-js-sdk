@@ -25,17 +25,17 @@ import { debugFail } from '../util/assert';
 export class AnonymousCredential implements AuthCredential {
   providerId = ProviderId.ANONYMOUS;
   signInMethod = SignInMethod.ANONYMOUS;
-  
+
   toJSON(): never {
     debugFail('Method not implemented.');
   }
-  
+
   async _getIdTokenResponse(auth: Auth): Promise<IdTokenResponse> {
     return signUp(auth, {
       returnSecureToken: true
     });
   }
-  
+
   async _linkToIdToken(_auth: Auth, _idToken: string): Promise<never> {
     debugFail("Can't link to an anonymous credential");
   }
@@ -47,7 +47,7 @@ export class AnonymousCredential implements AuthCredential {
 
 export class AnonymousProvider implements AuthProvider {
   providerId = ProviderId.ANONYMOUS;
-  
+
   static credential(): AnonymousCredential {
     return new AnonymousCredential();
   }
