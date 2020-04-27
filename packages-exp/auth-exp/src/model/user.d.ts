@@ -20,9 +20,11 @@ import { ProviderId } from '../core/providers';
 import { Auth } from './auth';
 import { IdTokenResult } from './id_token';
 
+export type UserProfile = { [key: string]: unknown } | null;
+
 export interface AdditionalUserInfo {
   readonly isNewUser: boolean;
-  readonly profile: { [key: string]: unknown } | null;
+  readonly profile: UserProfile;
   readonly providerId: ProviderId | null;
   readonly username: string | null;
 }
