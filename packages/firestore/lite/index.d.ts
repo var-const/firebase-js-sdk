@@ -17,9 +17,9 @@
 
 // import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 //
-// export type DocumentData = { [field: string]: any };
-//
-// export type UpdateData = { [fieldPath: string]: any };
+export type DocumentData = { [field: string]: any };
+
+export type UpdateData = { [fieldPath: string]: any };
 
 export interface Settings {
   host?: string;
@@ -42,10 +42,10 @@ export function initializeFirestore(
 // }
 
 export interface FirebaseFirestore {
-  //   collection(collectionPath: string): CollectionReference<DocumentData>;
-  //
-  //   doc(documentPath: string): DocumentReference<DocumentData>;
-  //
+  collection(collectionPath: string): CollectionReference<DocumentData>;
+
+  doc(documentPath: string): DocumentReference<DocumentData>;
+
   //   collectionGroup(collectionId: string): Query<DocumentData>;
 }
 
@@ -142,30 +142,30 @@ export interface FirebaseFirestore {
 //   readonly mergeFields?: (string | FieldPath)[];
 // }
 //
-// export interface DocumentReference<T = DocumentData> {
-//   readonly id: string;
-//   readonly firestore: FirebaseFirestore;
-//   readonly parent: CollectionReference<T>;
-//   readonly path: string;
+export interface DocumentReference<T = DocumentData> {
+  //   readonly id: string;
+  //   readonly firestore: FirebaseFirestore;
+  //   readonly parent: CollectionReference<T>;
+  //   readonly path: string;
+  //
+  //   collection(collectionPath: string): CollectionReference<DocumentData>;
+  //
+  //   isEqual(other: DocumentReference<T>): boolean;
+  //
+  //   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
+}
 //
-//   collection(collectionPath: string): CollectionReference<DocumentData>;
-//
-//   isEqual(other: DocumentReference<T>): boolean;
-//
-//   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
-// }
-//
-// export interface DocumentSnapshot<T = DocumentData> {
-//   readonly exists: boolean;
-//   readonly ref: DocumentReference<T>;
-//   readonly id: string;
-//
-//   data(): T | undefined;
-//
-//   get(fieldPath: string | FieldPath): any;
-//
-//   isEqual(other: DocumentSnapshot<T>): boolean;
-// }
+export interface DocumentSnapshot<T = DocumentData> {
+  readonly exists: boolean;
+  // readonly ref: DocumentReference<T>;
+  // readonly id: string;
+
+  data(): T | undefined;
+
+  // get(fieldPath: string | FieldPath): any;
+  //
+  // isEqual(other: DocumentSnapshot<T>): boolean;
+}
 //
 // export interface QueryDocumentSnapshot<T = DocumentData>
 //   extends DocumentSnapshot<T> {
@@ -184,40 +184,40 @@ export interface FirebaseFirestore {
 //   | 'in'
 //   | 'array-contains-any';
 //
-// export interface Query<T = DocumentData> {
-//   readonly firestore: FirebaseFirestore;
-//
-//   where(
-//     fieldPath: string | FieldPath,
-//     opStr: WhereFilterOp,
-//     value: any
-//   ): Query<T>;
-//
-//   orderBy(
-//     fieldPath: string | FieldPath,
-//     directionStr?: OrderByDirection
-//   ): Query<T>;
-//
-//   limit(limit: number): Query<T>;
-//
-//   limitToLast(limit: number): Query<T>;
-//
-//   startAt(snapshot: DocumentSnapshot<any>): Query<T>;
-//   startAt(...fieldValues: any[]): Query<T>;
-//
-//   startAfter(snapshot: DocumentSnapshot<any>): Query<T>;
-//   startAfter(...fieldValues: any[]): Query<T>;
-//
-//   endBefore(snapshot: DocumentSnapshot<any>): Query<T>;
-//   endBefore(...fieldValues: any[]): Query<T>;
-//
-//   endAt(snapshot: DocumentSnapshot<any>): Query<T>;
-//   endAt(...fieldValues: any[]): Query<T>;
-//
-//   isEqual(other: Query<T>): boolean;
-//
-//   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
-// }
+export interface Query<T = DocumentData> {
+  //   readonly firestore: FirebaseFirestore;
+  //
+  //   where(
+  //     fieldPath: string | FieldPath,
+  //     opStr: WhereFilterOp,
+  //     value: any
+  //   ): Query<T>;
+  //
+  //   orderBy(
+  //     fieldPath: string | FieldPath,
+  //     directionStr?: OrderByDirection
+  //   ): Query<T>;
+  //
+  //   limit(limit: number): Query<T>;
+  //
+  //   limitToLast(limit: number): Query<T>;
+  //
+  //   startAt(snapshot: DocumentSnapshot<any>): Query<T>;
+  //   startAt(...fieldValues: any[]): Query<T>;
+  //
+  //   startAfter(snapshot: DocumentSnapshot<any>): Query<T>;
+  //   startAfter(...fieldValues: any[]): Query<T>;
+  //
+  //   endBefore(snapshot: DocumentSnapshot<any>): Query<T>;
+  //   endBefore(...fieldValues: any[]): Query<T>;
+  //
+  //   endAt(snapshot: DocumentSnapshot<any>): Query<T>;
+  //   endAt(...fieldValues: any[]): Query<T>;
+  //
+  //   isEqual(other: Query<T>): boolean;
+  //
+  //   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
+}
 //
 // export class QuerySnapshot<T = DocumentData> {
 //   private constructor();
@@ -246,21 +246,21 @@ export interface FirebaseFirestore {
 //   readonly newIndex: number;
 // }
 //
-// export interface CollectionReference<T = DocumentData> extends Query<T> {
-//   readonly id: string;
-//   readonly parent: DocumentReference<DocumentData> | null;
-//   readonly path: string;
-//
-//   doc(documentPath?: string): DocumentReference<T>;
-//
-//   add(data: T): Promise<DocumentReference<T>>;
-//
-//   isEqual(other: CollectionReference<T>): boolean;
-//
-//   withConverter<U>(
-//     converter: FirestoreDataConverter<U>
-//   ): CollectionReference<U>;
-// }
+export interface CollectionReference<T = DocumentData> extends Query<T> {
+  // readonly id: string;
+  // readonly parent: DocumentReference<DocumentData> | null;
+  // readonly path: string;
+
+  doc(documentPath?: string): DocumentReference<T>;
+  //
+  // add(data: T): Promise<DocumentReference<T>>;
+  //
+  // isEqual(other: CollectionReference<T>): boolean;
+  //
+  // withConverter<U>(
+  //   converter: FirestoreDataConverter<U>
+  // ): CollectionReference<U>;
+}
 //
 // export class FieldValue {
 //   private constructor();
@@ -292,9 +292,9 @@ export interface FirebaseFirestore {
 //
 // // MARK: DocumentReference methods
 //
-// export function getDocument<T>(
-//   reference: DocumentReference<T>
-// ): Promise<DocumentSnapshot<T>>;
+export function getDocument<T>(
+  reference: DocumentReference<T>
+): Promise<DocumentSnapshot<T>>;
 //
 // export function deleteDocument(reference: DocumentReference): Promise<void>;
 //

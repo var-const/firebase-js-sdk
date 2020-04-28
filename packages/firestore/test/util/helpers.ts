@@ -92,6 +92,7 @@ import { ByteString } from '../../src/util/byte_string';
 import { PlatformSupport } from '../../src/platform/platform';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { Timestamp } from '../../src/api/timestamp';
+import { DocumentReference } from '../../src/api/database';
 
 /* eslint-disable no-restricted-globals */
 
@@ -117,7 +118,12 @@ export function testUserDataWriter(): UserDataWriter {
     ensureClientConfigured: () => {},
     _databaseId: new DatabaseId('test-project')
   };
-  return new UserDataWriter(firestore, /* timestampsInSnapshots= */ false);
+  return new UserDataWriter(
+    firestore._databaseId,
+    /* timestampsInSnapshots= */ false,
+    /* serverTimestampBehavior= */ 'none',
+    key => new DocumentReference(key, firestore)
+  );
 }
 
 export function testUserDataReader(useProto3Json?: boolean): UserDataReader {

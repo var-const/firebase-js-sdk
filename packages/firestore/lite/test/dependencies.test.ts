@@ -59,20 +59,119 @@ async function extractDependencies(exportName: string): Promise<string[]> {
   return dependencies;
 }
 
+const baseDependencies = [
+  'BasePath',
+  'Blob',
+  'ByteString',
+  'DocumentKey',
+  'FieldPath',
+  'FirestoreError',
+  'ObjectValue',
+  'PlatformSupport',
+  'ResourcePath',
+  'Timestamp',
+  'argToString',
+  'arrayEquals',
+  'assertBase64Available',
+  'assertUint8ArrayAvailable',
+  'binaryStringFromUint8Array',
+  'blobEquals',
+  'debugAssert',
+  'fail',
+  'formatPlural',
+  'geoPointEquals',
+  'getLocalWriteTime',
+  'hardAssert',
+  'invalidClassError',
+  'isMapValue',
+  'isNegativeZero',
+  'isPlainObject',
+  'isServerTimestamp',
+  'logError',
+  'makeConstructorPrivate',
+  'normalizeByteString',
+  'normalizeNumber',
+  'normalizeTimestamp',
+  'numberEquals',
+  'objectEquals',
+  'objectSize',
+  'ordinal',
+  'primitiveComparator',
+  'timestampEquals',
+  'tryGetCustomObjectType',
+  'typeOrder',
+  'uint8ArrayFromBinaryString',
+  'validateArgType',
+  'validateExactNumberOfArgs',
+  'validateType',
+  'valueDescription',
+  'valueEquals'
+];
+
+const dependencies = new Map<string, string[]>();
+dependencies.set('FirebaseFirestore', [
+  'DatabaseId',
+  'DatabaseInfo',
+  'Datastore',
+  'FirestoreSettings',
+  'OAuthToken',
+  'DatastoreImpl',
+  'FirebaseCredentialsProvider',
+  'Firestore',
+  'User',
+  'newDatastore',
+  ...baseDependencies
+]);
+dependencies.set('initializeFirestore', [
+  'initializeFirestore',
+  'FirestoreSettings',
+  ...baseDependencies
+]);
+dependencies.set('DocumentSnapshot', [
+  'DatabaseId',
+  'DocumentReference',
+  'DocumentSnapshot',
+  'GeoPoint',
+  'UserDataWriter',
+  'forEach',
+  'getPreviousValue',
+  'isValidResourceName',
+  ...baseDependencies
+]);
+dependencies.set(
+  'CollectionReference',
+  ['DocumentReference', 'CollectionReference', 'AutoId', ...baseDependencies]!
+);
+dependencies.set(
+  'DocumentReference',
+  ['DocumentReference', ...baseDependencies]!
+);
+dependencies.set('getDocument', [
+  'Datastore',
+  'DatastoreImpl',
+  'Document',
+  'MaybeDocument',
+  'compareArrays',
+  'compareBlobs',
+  'compareGeoPoints',
+  'compareMaps',
+  'compareNumbers',
+  'compareReferences',
+  'compareTimestamps',
+  'debugCast',
+  'getDocument',
+  'invokeBatchGetDocumentsRpc',
+  'valueCompare',
+  ...dependencies.get('DocumentSnapshot')!
+]);
+
 describe('Dependencies', () => {
-  it('FirebaseFirestore', async () => {
-    const dependencies = await extractDependencies('FirebaseFirestore');
-
-    expect(dependencies).to.have.members([
-      'Firestore',
-      'FirestoreError',
-      'FirestoreSettings'
-    ]);
-  });
-
-  it('initializeFirestore', async () => {
-    const dependencies = await extractDependencies('initializeFirestore');
-
-    expect(dependencies).to.have.members(['initializeFirestore']);
+  dependencies.forEach((actualDependencies, api) => {
+    it(api, () => {
+      return extractDependencies(api).then(extractedDependencies => {
+        actualDependencies.sort();
+        expect(extractedDependencies).to.have.members(actualDependencies);
+      });
+    });
   });
 });
