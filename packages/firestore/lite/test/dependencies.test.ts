@@ -19,6 +19,7 @@ import * as rollup from 'rollup';
 import * as tmp from 'tmp';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as terser from 'terser';
 import { expect } from 'chai';
 
 /**
@@ -49,17 +50,32 @@ async function extractDependencies(exportName: string): Promise<string[]> {
 
   const dependencies: string[] = [];
   for (const line of afterContent.split('\n')) {
-    const identifierRe = /^(?:async )?(?:function|class) ([\w]*)/;
+    const identifierRe = /^(?:async )?(?:function|class) ([\w\$]*)/;
     const match = line.match(identifierRe);
     if (match) {
       dependencies.push(match[1]);
     }
   }
   dependencies.sort();
-  
+
+  // Extract size (for debugging)
+  const { code } = terser.minify(afterContent, {
+    output: {
+      comments: false
+    },
+    mangle: false,
+    compress: false
+  });
+  console.log(
+    `Exported size for '${exportName}': ${Buffer.byteLength(
+      code!,
+      'utf-8'
+    )} bytes`
+  );
+
   fs.unlinkSync(input);
   fs.unlinkSync(output);
-  
+
   return dependencies;
 }
 
@@ -69,6 +85,7 @@ const baseDependencies = [
   'ByteString',
   'DocumentKey',
   'FieldPath',
+  'FieldPath$1',
   'FirestoreError',
   'ObjectValue',
   'PlatformSupport',
@@ -106,6 +123,7 @@ const baseDependencies = [
   'typeOrder',
   'uint8ArrayFromBinaryString',
   'validateArgType',
+  'validateNamedArrayAtLeastNumberOfElements',
   'validateExactNumberOfArgs',
   'validateType',
   'valueDescription',
@@ -114,6 +132,9 @@ const baseDependencies = [
 
 const dependencies = new Map<string, string[]>();
 dependencies.set('FirebaseFirestore', [
+  'AutoId',
+  'CollectionReference',
+  'DocumentReference',
   'DatabaseId',
   'DatabaseInfo',
   'Datastore',
@@ -170,7 +191,73 @@ dependencies.set('getDocument', [
 ]);
 dependencies.set(
   'setDocument',
-  ['DocumentReference', ...baseDependencies]!
+  [
+    'DocumentReference',
+    'ArrayRemoveFieldValueImpl',
+    'ArrayRemoveTransformOperation',
+    'ArrayUnionFieldValueImpl',
+    'ArrayUnionTransformOperation',
+    'Datastore',
+    'DatastoreImpl',
+    'DeleteFieldValueImpl',
+    'Document',
+    'DocumentKeyReference',
+    'FieldMask',
+    'FieldTransform',
+    'FieldValueImpl',
+    'GeoPoint',
+    'LLRBEmptyNode',
+    'LLRBNode',
+    'MaybeDocument',
+    'Mutation',
+    'NumericIncrementFieldValueImpl',
+    'NumericIncrementTransformOperation',
+    'ObjectValueBuilder',
+    'ParseContext',
+    'ParsedSetData',
+    'ParsedUpdateData',
+    'PatchMutation',
+    'Precondition',
+    'ServerTimestampFieldValueImpl',
+    'ServerTimestampTransform',
+    'SetMutation',
+    'SnapshotVersion',
+    'SortedMap',
+    'SortedMapIterator',
+    'SortedSet',
+    'SortedSetIterator',
+    'TransformMutation',
+    'UnknownDocument',
+    'UserDataReader',
+    'coercedFieldValuesArray',
+    'compareArrays',
+    'compareBlobs',
+    'compareGeoPoints',
+    'compareMaps',
+    'compareNumbers',
+    'compareReferences',
+    'compareTimestamps',
+    'debugCast',
+    'errorMessage',
+    'fieldPathFromArgument',
+    'fieldPathFromDotSeparatedString',
+    'forEach',
+    'fromDotSeparatedString',
+    'invokeCommitRpc',
+    'isArray',
+    'isDouble',
+    'isEmpty',
+    'isInteger',
+    'isWrite',
+    'valueCompare',
+    'validatePlainObject',
+    'userDataReaderPreConverter',
+    'serverTimestamp',
+    'setDocument',
+    'looksLikeJsonObject',
+    'isNumber',
+    ...baseDependencies
+  ]!
 );
 
 describe('Dependencies', () => {

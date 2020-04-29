@@ -33,15 +33,15 @@ import {
   ServerTimestampBehavior,
   UserDataWriter
 } from '../../../src/api/user_data_writer';
-import {Precondition} from "../../../src/model/mutation";
-import {invalidClassError} from "../../../src/util/input_validation";
-import {applyFirestoreDataConverter} from "../../../src/api/database";
+import { Precondition } from '../../../src/model/mutation';
+import { invalidClassError } from '../../../src/util/input_validation';
+import { applyFirestoreDataConverter } from '../../../src/api/database';
 import {
   DocumentKeyReference,
   UserDataReader
-} from "../../../src/api/user_data_reader";
-import {PlatformSupport} from "../../../src/platform/platform";
-import {DatabaseId} from "../../../src/core/database_info";
+} from '../../../src/api/user_data_reader';
+import { PlatformSupport } from '../../../src/platform/platform';
+import { DatabaseId } from '../../../src/core/database_info';
 
 /**
  * A reference to a particular document in a collection in the database.
@@ -121,23 +121,28 @@ export async function setDocument<T>(
   const firestore = reference.firestore;
   await firestore._ensureClientConfigured();
   const convertedValue = data; // TODO(support converter)
-  const dataReader = new UserDataReader(PlatformSupport.getPlatform().newSerializer(firestore._databaseId), v => userDataReaderPreConverter(firestore._databaseId, v));
+  const dataReader = new UserDataReader(
+    PlatformSupport.getPlatform().newSerializer(firestore._databaseId),
+    v => userDataReaderPreConverter(firestore._databaseId, v)
+  );
   const parsed =
     options.merge || options.mergeFields
       ? dataReader.parseMergeData(
-      'setDocument',
-      convertedValue,
-      options.mergeFields
-      )
-      : dataReader.parseSetData(
-      'setDocument',
-      convertedValue
-      );
-  await invokeCommitRpc(firestore._datastore!, parsed.toMutations(reference._key, Precondition.none()));
+          'setDocument',
+          convertedValue,
+          options.mergeFields
+        )
+      : dataReader.parseSetData('setDocument', convertedValue);
+  await invokeCommitRpc(
+    firestore._datastore!,
+    parsed.toMutations(reference._key, Precondition.none())
+  );
 }
 
-
-function userDataReaderPreConverter(databaseId: DatabaseId, value: unknown): unknown {
+function userDataReaderPreConverter(
+  databaseId: DatabaseId,
+  value: unknown
+): unknown {
   if (value instanceof DocumentReference) {
     const thisDb = databaseId;
     const otherDb = value.firestore._databaseId;
@@ -145,8 +150,8 @@ function userDataReaderPreConverter(databaseId: DatabaseId, value: unknown): unk
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Document reference is for database ' +
-        `${otherDb.projectId}/${otherDb.database} but should be ` +
-        `for database ${thisDb.projectId}/${thisDb.database}`
+          `${otherDb.projectId}/${otherDb.database} but should be ` +
+          `for database ${thisDb.projectId}/${thisDb.database}`
       );
     }
     return new DocumentKeyReference(databaseId, value._key);

@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import { withTestDoc } from './helpers';
-import {getDocument, setDocument} from '../src/api/reference';
+import { getDocument, setDocument } from '../src/api/reference';
 
 describe('Database', () => {
   it('can get a document', () => {
@@ -29,18 +29,18 @@ describe('Database', () => {
 
   it('can set a document', () => {
     return withTestDoc(async docRef => {
-       await setDocument(docRef, { foo: 'bar'});
+      await setDocument(docRef, { foo: 'bar' });
       const docSnap = await getDocument(docRef);
-      expect(docSnap.data()).to.deep.equal({ foo: 'bar'})
+      expect(docSnap.data()).to.deep.equal({ foo: 'bar' });
     });
   });
 
   it('can merge a document', () => {
     return withTestDoc(async docRef => {
-      await setDocument(docRef, { foo: 'foo'} , {merge: true});
-      await setDocument(docRef, { bar: 'bar'} , {merge: true});
+      await setDocument(docRef, { foo: 'foo' }, { merge: true });
+      await setDocument(docRef, { bar: 'bar' }, { merge: true });
       const docSnap = await getDocument(docRef);
-      expect(docSnap.data()).to.deep.equal({ foo: 'foo', bar: 'bar'});
+      expect(docSnap.data()).to.deep.equal({ foo: 'foo', bar: 'bar' });
     });
   });
 });

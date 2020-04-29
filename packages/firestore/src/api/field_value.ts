@@ -29,9 +29,41 @@ import {
  * An opaque base class for FieldValue sentinel objects in our public API,
  * with public static methods for creating said sentinel objects.
  */
-export abstract class FieldValueImpl implements firestore.FieldValue {
+export abstract class FieldValueImpl {
   protected constructor(readonly _methodName: string) {}
+}
 
+export class DeleteFieldValueImpl extends FieldValueImpl {
+  constructor() {
+    super('FieldValue.delete');
+  }
+}
+
+export class ServerTimestampFieldValueImpl extends FieldValueImpl {
+  constructor() {
+    super('FieldValue.serverTimestamp');
+  }
+}
+
+export class ArrayUnionFieldValueImpl extends FieldValueImpl {
+  constructor(readonly _elements: unknown[]) {
+    super('FieldValue.arrayUnion');
+  }
+}
+
+export class ArrayRemoveFieldValueImpl extends FieldValueImpl {
+  constructor(readonly _elements: unknown[]) {
+    super('FieldValue.arrayRemove');
+  }
+}
+
+export class NumericIncrementFieldValueImpl extends FieldValueImpl {
+  constructor(readonly _operand: number) {
+    super('FieldValue.increment');
+  }
+}
+
+export class FieldValue implements firestore.FieldValue {
   static delete(): FieldValueImpl {
     validateNoArgs('FieldValue.delete', arguments);
     return new DeleteFieldValueImpl();
@@ -62,37 +94,7 @@ export abstract class FieldValueImpl implements firestore.FieldValue {
     return new NumericIncrementFieldValueImpl(n);
   }
 
-  isEqual(other: FieldValueImpl): boolean {
+  isEqual(other: FieldValue): boolean {
     return this === other;
-  }
-}
-
-export class DeleteFieldValueImpl extends FieldValueImpl {
-  constructor() {
-    super('FieldValue.delete');
-  }
-}
-
-export class ServerTimestampFieldValueImpl extends FieldValueImpl {
-  constructor() {
-    super('FieldValue.serverTimestamp');
-  }
-}
-
-export class ArrayUnionFieldValueImpl extends FieldValueImpl {
-  constructor(readonly _elements: unknown[]) {
-    super('FieldValue.arrayUnion');
-  }
-}
-
-export class ArrayRemoveFieldValueImpl extends FieldValueImpl {
-  constructor(readonly _elements: unknown[]) {
-    super('FieldValue.arrayRemove');
-  }
-}
-
-export class NumericIncrementFieldValueImpl extends FieldValueImpl {
-  constructor(readonly _operand: number) {
-    super('FieldValue.increment');
   }
 }

@@ -97,7 +97,7 @@ import {
 import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
-import {FieldValueImpl} from "./field_value";
+import { FieldValue, FieldValueImpl } from './field_value';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -2588,6 +2588,6 @@ export const PublicCollectionReference = makeConstructorPrivate(
   'Use firebase.firestore().collection() instead.'
 );
 export const PublicFieldValue = makeConstructorPrivate(
-  FieldValueImpl,
+  FieldValue,
   'Use FieldValue.<field>() instead.'
 );
