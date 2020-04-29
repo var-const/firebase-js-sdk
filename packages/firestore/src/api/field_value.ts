@@ -34,12 +34,12 @@ export abstract class FieldValueImpl implements firestore.FieldValue {
 
   static delete(): FieldValueImpl {
     validateNoArgs('FieldValue.delete', arguments);
-    return DeleteFieldValueImpl.instance;
+    return new DeleteFieldValueImpl();
   }
 
   static serverTimestamp(): FieldValueImpl {
     validateNoArgs('FieldValue.serverTimestamp', arguments);
-    return ServerTimestampFieldValueImpl.instance;
+    return new ServerTimestampFieldValueImpl();
   }
 
   static arrayUnion(...elements: unknown[]): FieldValueImpl {
@@ -68,19 +68,15 @@ export abstract class FieldValueImpl implements firestore.FieldValue {
 }
 
 export class DeleteFieldValueImpl extends FieldValueImpl {
-  private constructor() {
+  constructor() {
     super('FieldValue.delete');
   }
-  /** Singleton instance. */
-  static instance = new DeleteFieldValueImpl();
 }
 
 export class ServerTimestampFieldValueImpl extends FieldValueImpl {
-  private constructor() {
+  constructor() {
     super('FieldValue.serverTimestamp');
   }
-  /** Singleton instance. */
-  static instance = new ServerTimestampFieldValueImpl();
 }
 
 export class ArrayUnionFieldValueImpl extends FieldValueImpl {
@@ -100,15 +96,3 @@ export class NumericIncrementFieldValueImpl extends FieldValueImpl {
     super('FieldValue.increment');
   }
 }
-
-// Public instance that disallows construction at runtime. This constructor is
-// used when exporting FieldValueImpl on firebase.firestore.FieldValue and will
-// be called FieldValue publicly. Internally we still use FieldValueImpl which
-// has a type-checked private constructor. Note that FieldValueImpl and
-// PublicFieldValue can be used interchangeably in instanceof checks.
-// For our internal TypeScript code PublicFieldValue doesn't exist as a type,
-// and so we need to use FieldValueImpl as type and export it too.
-export const PublicFieldValue = makeConstructorPrivate(
-  FieldValueImpl,
-  'Use FieldValue.<field>() instead.'
-);

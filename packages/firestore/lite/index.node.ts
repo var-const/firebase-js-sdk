@@ -17,17 +17,17 @@
 
 export {
   Firestore as FirebaseFirestore,
-  initializeFirestore
+  //initializeFirestore
 } from './src/api/database';
-
-export {
-  FieldPath
-} from '../src/api/field_path';
-
-export {
-  getDocument,
-  setDocument,
-  DocumentSnapshot,
-  DocumentReference,
-  CollectionReference
-} from './src/api/reference';
+//
+// export {
+//   FieldPath
+// } from '../src/api/field_path';
+//
+// export {
+//   getDocument,
+//   setDocument,
+//   DocumentSnapshot,
+//   DocumentReference,
+//   CollectionReference
+// } from './src/api/reference';
