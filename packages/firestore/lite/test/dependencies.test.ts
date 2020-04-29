@@ -56,6 +56,10 @@ async function extractDependencies(exportName: string): Promise<string[]> {
     }
   }
   dependencies.sort();
+  
+  fs.unlinkSync(input);
+  fs.unlinkSync(output);
+  
   return dependencies;
 }
 
@@ -164,6 +168,10 @@ dependencies.set('getDocument', [
   'valueCompare',
   ...dependencies.get('DocumentSnapshot')!
 ]);
+dependencies.set(
+  'setDocument',
+  ['DocumentReference', ...baseDependencies]!
+);
 
 describe('Dependencies', () => {
   dependencies.forEach((actualDependencies, api) => {

@@ -21,7 +21,12 @@ export {
 } from './src/api/database';
 
 export {
+  FieldPath
+} from '../src/api/field_path';
+
+export {
   getDocument,
+  setDocument,
   DocumentSnapshot,
   DocumentReference,
   CollectionReference

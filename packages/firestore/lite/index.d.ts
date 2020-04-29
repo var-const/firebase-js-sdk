@@ -41,7 +41,7 @@ export function initializeFirestore(
 //   fromFirestore(snapshot: QueryDocumentSnapshot): T;
 // }
 
-export interface FirebaseFirestore {
+export class FirebaseFirestore {
   collection(collectionPath: string): CollectionReference<DocumentData>;
 
   doc(documentPath: string): DocumentReference<DocumentData>;
@@ -137,12 +137,12 @@ export interface FirebaseFirestore {
 //   commit(): Promise<void>;
 // }
 //
-// export interface SetOptions {
-//   readonly merge?: boolean;
-//   readonly mergeFields?: (string | FieldPath)[];
-// }
-//
-export interface DocumentReference<T = DocumentData> {
+export interface SetOptions {
+  readonly merge?: boolean;
+  readonly mergeFields?: (string | FieldPath)[];
+}
+
+export class DocumentReference<T = DocumentData> {
   //   readonly id: string;
   //   readonly firestore: FirebaseFirestore;
   //   readonly parent: CollectionReference<T>;
@@ -155,7 +155,7 @@ export interface DocumentReference<T = DocumentData> {
   //   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 //
-export interface DocumentSnapshot<T = DocumentData> {
+export class DocumentSnapshot<T = DocumentData> {
   readonly exists: boolean;
   // readonly ref: DocumentReference<T>;
   // readonly id: string;
@@ -184,7 +184,7 @@ export interface DocumentSnapshot<T = DocumentData> {
 //   | 'in'
 //   | 'array-contains-any';
 //
-export interface Query<T = DocumentData> {
+export class Query<T = DocumentData> {
   //   readonly firestore: FirebaseFirestore;
   //
   //   where(
@@ -246,7 +246,7 @@ export interface Query<T = DocumentData> {
 //   readonly newIndex: number;
 // }
 //
-export interface CollectionReference<T = DocumentData> extends Query<T> {
+export class CollectionReference<T = DocumentData> extends Query<T> {
   // readonly id: string;
   // readonly parent: DocumentReference<DocumentData> | null;
   // readonly path: string;
@@ -267,10 +267,10 @@ export interface CollectionReference<T = DocumentData> extends Query<T> {
 //   isEqual(other: FieldValue): boolean;
 // }
 //
-// export class FieldPath {
-//   constructor(...fieldNames: string[]);
-//   isEqual(other: FieldPath): boolean;
-// }
+export class FieldPath {
+  constructor(...fieldNames: string[]);
+  isEqual(other: FieldPath): boolean;
+}
 //
 // // MARK: Initialization methods
 //
@@ -309,12 +309,12 @@ export function getDocument<T>(
 //   ...moreFieldsAndValues: any[]
 // ): Promise<void>;
 //
-// export function setDocument<T>(
-//   reference: DocumentReference<T>,
-//   data: T,
-//   options?: SetOptions
-// ): Promise<void>;
-//
+export function setDocument<T>(
+  reference: DocumentReference<T>,
+  data: T,
+  options?: SetOptions
+): Promise<void>;
+
 // export function addDocument<T>(
 //   reference: CollectionReference<T>,
 //   data: T

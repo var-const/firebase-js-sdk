@@ -2536,7 +2536,7 @@ function resultChangeType(type: ChangeType): firestore.DocumentChangeType {
  * their set() or fails due to invalid data originating from a toFirestore()
  * call.
  */
-function applyFirestoreDataConverter<T>(
+export function applyFirestoreDataConverter<T>(
   converter: firestore.FirestoreDataConverter<T> | undefined,
   value: T,
   functionName: string
